@@ -623,9 +623,11 @@ def run_prof(fname, profiler_options, workload_dir, mspec, loglevel):
             counter_info_csvs = glob.glob(
                 workload_dir + "/out/pmc_1/*/*_counter_collection.csv"
             )
-            
-            existing_counter_files_csv = [d for d in counter_info_csvs if os.path.isfile(d)]
-            
+
+            existing_counter_files_csv = [
+                d for d in counter_info_csvs if os.path.isfile(d)
+            ]
+
             if len(existing_counter_files_csv) > 0:
                 for counter_file in existing_counter_files_csv:
                     current_dir = os.path.dirname(counter_file)
@@ -637,7 +639,9 @@ def run_prof(fname, profiler_options, workload_dir, mspec, loglevel):
                     )
                     if not os.path.isfile(agent_info_filepath):
                         raise ValueError(
-                            '{} has no coresponding "agent info" file'.format(counter_file)
+                            '{} has no coresponding "agent info" file'.format(
+                                counter_file
+                            )
                         )
 
                     converted_csv_file = os.path.join(
@@ -647,9 +651,13 @@ def run_prof(fname, profiler_options, workload_dir, mspec, loglevel):
                         ),
                     )
 
-                    v3_csv_to_v2_csv(counter_file, agent_info_filepath, converted_csv_file)
+                    v3_csv_to_v2_csv(
+                        counter_file, agent_info_filepath, converted_csv_file
+                    )
 
-                results_files_csv = glob.glob(workload_dir + "/out/pmc_1/*/*_converted.csv")
+                results_files_csv = glob.glob(
+                    workload_dir + "/out/pmc_1/*/*_converted.csv"
+                )
             else:
                 results_files_csv = glob.glob(
                     workload_dir + "/out/pmc_1/*/*_kernel_trace.csv"

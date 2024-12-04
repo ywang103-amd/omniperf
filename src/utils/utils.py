@@ -624,29 +624,44 @@ def run_prof(fname, profiler_options, workload_dir, mspec, loglevel):
                 workload_dir + "/out/pmc_1/*/*_counter_collection.csv"
             )
 
-            for counter_file in counter_info_csvs:
-                current_dir = os.path.dirname(counter_file)
-                agent_info_filepath = os.path.join(
-                    current_dir,
-                    os.path.basename(counter_file).replace(
-                        "_counter_collection", "_agent_info"
-                    ),
-                )
-                if not os.path.isfile(agent_info_filepath):
-                    raise ValueError(
-                        '{} has no coresponding "agent info" file'.format(counter_file)
+            existing_counter_files_csv = [
+                d for d in counter_info_csvs if os.path.isfile(d)
+            ]
+
+            if len(existing_counter_files_csv) > 0:
+                for counter_file in existing_counter_files_csv:
+                    current_dir = os.path.dirname(counter_file)
+                    agent_info_filepath = os.path.join(
+                        current_dir,
+                        os.path.basename(counter_file).replace(
+                            "_counter_collection", "_agent_info"
+                        ),
+                    )
+                    if not os.path.isfile(agent_info_filepath):
+                        raise ValueError(
+                            '{} has no coresponding "agent info" file'.format(
+                                counter_file
+                            )
+                        )
+
+                    converted_csv_file = os.path.join(
+                        current_dir,
+                        os.path.basename(counter_file).replace(
+                            "_counter_collection", "_converted"
+                        ),
                     )
 
-                converted_csv_file = os.path.join(
-                    current_dir,
-                    os.path.basename(counter_file).replace(
-                        "_counter_collection", "_converted"
-                    ),
+                    v3_csv_to_v2_csv(
+                        counter_file, agent_info_filepath, converted_csv_file
+                    )
+
+                results_files_csv = glob.glob(
+                    workload_dir + "/out/pmc_1/*/*_converted.csv"
                 )
-
-                v3_csv_to_v2_csv(counter_file, agent_info_filepath, converted_csv_file)
-
-            results_files_csv = glob.glob(workload_dir + "/out/pmc_1/*/*_converted.csv")
+            else:
+                results_files_csv = glob.glob(
+                    workload_dir + "/out/pmc_1/*/*_kernel_trace.csv"
+                )
 
         # Combine results into single CSV file
         combined_results = pd.concat(

@@ -36,6 +36,7 @@ from utils.utils import (
     console_log,
     demarcate,
     is_workload_empty,
+    merge_counters_spatial_multiplex,
 )
 
 
@@ -56,6 +57,10 @@ class OmniAnalyze_Base:
 
     def get_socs(self):
         return self.__socs
+    
+    @demarcate
+    def spatial_multiplex_merge_counters(self, df):
+        merge_counters_spatial_multiplex(df)
 
     @demarcate
     def generate_configs(self, arch, config_dir, list_stats, filter_metrics, sys_info):

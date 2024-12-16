@@ -44,6 +44,7 @@ class cli_analysis(OmniAnalyze_Base):
             self._runs[d[0]].raw_pmc = file_io.create_df_pmc(
                 d[0],
                 self.get_args().nodes,
+                self.get_args().spatial_multiplexing,
                 self.get_args().kernel_verbose,
                 self.get_args().verbose,
             )

@@ -170,7 +170,7 @@ def create_df_kernel_top_stats(
 
 
 @demarcate
-def create_df_pmc(raw_data_root_dir, nodes, kernel_verbose, verbose):
+def create_df_pmc(raw_data_root_dir, nodes, spatial_multiplexing, kernel_verbose, verbose):
     """
     Load all raw pmc counters and join into one df.
     """
@@ -179,8 +179,6 @@ def create_df_pmc(raw_data_root_dir, nodes, kernel_verbose, verbose):
         dfs = []
         coll_levels = []
 
-        df = pd.DataFrame()
-        new_df = pd.DataFrame()
         for root, dirs, files in os.walk(raw_data_dir):
             for f in files:
                 # print("file ", f)
@@ -206,12 +204,8 @@ def create_df_pmc(raw_data_root_dir, nodes, kernel_verbose, verbose):
             console_debug("pmc_raw_data final_single_df %s" % final_df.info)
         return final_df
 
-    # regular single node case
-    if nodes is None:
-        return create_single_df_pmc(raw_data_root_dir, None, kernel_verbose, verbose)
-
     # "empty list" means all nodes
-    elif not nodes:
+    if spatial_multiplexing or not nodes:
         df = pd.DataFrame()
         # todo: more err check
         for subdir in Path(raw_data_root_dir).iterdir():
@@ -221,6 +215,10 @@ def create_df_pmc(raw_data_root_dir, nodes, kernel_verbose, verbose):
                 )
                 df = pd.concat([df, new_df])
         return df
+    
+    # regular single node case
+    elif nodes is None:
+        return create_single_df_pmc(raw_data_root_dir, None, kernel_verbose, verbose)
 
     # specified node list
     else:

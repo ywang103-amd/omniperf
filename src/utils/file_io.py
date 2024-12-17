@@ -206,33 +206,53 @@ def create_df_pmc(
             console_debug("pmc_raw_data final_single_df %s" % final_df.info)
         return final_df
 
-    # "empty list" means all nodes
-    if spatial_multiplexing and spatial_multiplexing[1] > 0 or not nodes:
-        df = pd.DataFrame()
-        # todo: more err check
-        for subdir in Path(raw_data_root_dir).iterdir():
-            if subdir.is_dir():
+    if spatial_multiplexing is not None:
+        if (
+            spatial_multiplexing
+            and len(spatial_multiplexing) == 3
+            and spatial_multiplexing[1] == 1
+        ):
+            return create_single_df_pmc(raw_data_root_dir, None, kernel_verbose, verbose)
+
+        else:
+            df = pd.DataFrame()
+            # todo: more err check
+            for subdir in Path(raw_data_root_dir).iterdir():
+                if subdir.is_dir():
+                    new_df = create_single_df_pmc(
+                        subdir, str(subdir.name), kernel_verbose, verbose
+                    )
+                    df = pd.concat([df, new_df])
+            return df
+
+    else:
+        # regular single node case
+        if nodes is None:
+            return create_single_df_pmc(raw_data_root_dir, None, kernel_verbose, verbose)
+
+        # "empty list" means all nodes
+        elif not nodes:
+            df = pd.DataFrame()
+            # todo: more err check
+            for subdir in Path(raw_data_root_dir).iterdir():
+                if subdir.is_dir():
+                    new_df = create_single_df_pmc(
+                        subdir, str(subdir.name), kernel_verbose, verbose
+                    )
+                    df = pd.concat([df, new_df])
+            return df
+
+        # specified node list
+        else:
+            df = pd.DataFrame()
+            # todo: more err check
+            for subdir in nodes:
+                p = Path(raw_data_root_dir)
                 new_df = create_single_df_pmc(
-                    subdir, str(subdir.name), kernel_verbose, verbose
+                    p.joinpath(subdir), subdir, kernel_verbose, verbose
                 )
                 df = pd.concat([df, new_df])
-        return df
-
-    # regular single node case
-    elif spatial_multiplexing and spatial_multiplexing[1] == 0 or nodes is None:
-        return create_single_df_pmc(raw_data_root_dir, None, kernel_verbose, verbose)
-
-    # specified node list
-    else:
-        df = pd.DataFrame()
-        # todo: more err check
-        for subdir in nodes:
-            p = Path(raw_data_root_dir)
-            new_df = create_single_df_pmc(
-                p.joinpath(subdir), subdir, kernel_verbose, verbose
-            )
-            df = pd.concat([df, new_df])
-        return df
+            return df
 
 
 def collect_wave_occu_per_cu(in_dir, out_dir, numSE):

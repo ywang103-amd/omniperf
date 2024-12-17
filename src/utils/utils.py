@@ -1093,6 +1093,15 @@ def merge_counters_spatial_multiplex(df):
         "End_Timestamp",
         "Correlation_ID",
         "Kernel_ID",
+        "Node",
+    ]
+    
+    expried_column_index = [
+        "Node",
+        "GPU_ID",
+        "PID",
+        "TID",
+        "Dispatch_ID",
     ]
     
      # Sort the dataframe by Kernel_Name to group rows of the same kernel together
@@ -1122,6 +1131,9 @@ def merge_counters_spatial_multiplex(df):
                 delta_time = group["End_Timestamp"] - group["Start_Timestamp"]
                 median_delta_time = delta_time.median()
                 merged_row[col] = merged_row["Start_Timestamp"] + median_delta_time
+                
+            elif col in expried_column_index:
+                continue
             else:
                 # For other non-counter columns, take the first occurrence (0th row)
                 merged_row[col] = group.iloc[0][col]

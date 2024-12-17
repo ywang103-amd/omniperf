@@ -146,7 +146,7 @@ class OmniAnalyze_Base:
         for d in self.__args.path:
             sysinfo_path = (
                 Path(d[0])
-                if self.__args.nodes is None
+                if self.__args.nodes is None and self.__args.spatial_multiplexing is None
                 else file_io.find_1st_sub_dir(d[0])
             )
             sys_info = file_io.load_sys_info(sysinfo_path.joinpath("sysinfo.csv"))
@@ -170,7 +170,7 @@ class OmniAnalyze_Base:
             #    pick up the one in the 1st sub_dir. We could fix it properly later.
             sysinfo_path = (
                 Path(d[0])
-                if self.__args.nodes is None
+                if self.__args.nodes is None and self.__args.spatial_multiplexing is None
                 else file_io.find_1st_sub_dir(d[0])
             )
             w.sys_info = file_io.load_sys_info(sysinfo_path.joinpath("sysinfo.csv"))
@@ -204,7 +204,7 @@ class OmniAnalyze_Base:
             # validate profiling data
 
             # Todo: more err check
-            if not (self.__args.nodes != None or self.__args.list_nodes):
+            if not (self.__args.nodes != None or self.__args.list_nodes or self.__args.spatial_multiplexing):
                 is_workload_empty(dir[0])
             # else:
 

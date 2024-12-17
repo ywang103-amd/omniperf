@@ -170,7 +170,9 @@ def create_df_kernel_top_stats(
 
 
 @demarcate
-def create_df_pmc(raw_data_root_dir, nodes, spatial_multiplexing, kernel_verbose, verbose):
+def create_df_pmc(
+    raw_data_root_dir, nodes, spatial_multiplexing, kernel_verbose, verbose
+):
     """
     Load all raw pmc counters and join into one df.
     """
@@ -215,7 +217,7 @@ def create_df_pmc(raw_data_root_dir, nodes, spatial_multiplexing, kernel_verbose
                 )
                 df = pd.concat([df, new_df])
         return df
-    
+
     # regular single node case
     elif nodes is None:
         return create_single_df_pmc(raw_data_root_dir, None, kernel_verbose, verbose)

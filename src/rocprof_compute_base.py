@@ -215,15 +215,15 @@ class RocProfCompute:
                     p.mkdir(parents=True, exist_ok=False)
                 except FileExistsError:
                     console_error("Directory already exists.")
-                    
+
         elif self.__args.mode == "analyze":
-        # block all filters during spatial-multiplexing
+            # block all filters during spatial-multiplexing
             if self.__args.spatial_multiplexing:
                 self.__args.gpu_id = None
                 self.__args.gpu_kernel = None
                 self.__args.gpu_dispatch_id = None
                 self.__args.nodes = None
-            
+
         return
 
     @demarcate
@@ -346,7 +346,8 @@ class RocProfCompute:
             # sys_info = pd.read_csv(Path(d[0], "sysinfo.csv"))
             sysinfo_path = (
                 Path(d[0])
-                if analyzer.get_args().nodes is None and analyzer.get_args().spatial_multiplexing is None
+                if analyzer.get_args().nodes is None
+                and analyzer.get_args().spatial_multiplexing is None
                 else file_io.find_1st_sub_dir(d[0])
             )
             sys_info = file_io.load_sys_info(sysinfo_path.joinpath("sysinfo.csv"))

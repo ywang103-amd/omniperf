@@ -1073,6 +1073,7 @@ def set_locale_encoding():
         )
         console_error(error)
 
+
 def merge_counters_spatial_multiplex(df):
     non_counter_column_index = [
         "Dispatch_ID",
@@ -1095,7 +1096,7 @@ def merge_counters_spatial_multiplex(df):
         "Kernel_ID",
         "Node",
     ]
-    
+
     expried_column_index = [
         "Node",
         "GPU_ID",
@@ -1103,21 +1104,17 @@ def merge_counters_spatial_multiplex(df):
         "TID",
         "Dispatch_ID",
     ]
-    
-     # Sort the dataframe by Kernel_Name to group rows of the same kernel together
-    df_sorted = df.sort_values(by="Kernel_Name").reset_index(drop=True)
-    
+
+    # Find the values in Kernel_Name that occur more than once
+    kernel_single_occurances = df["Kernel_Name"].value_counts().index
+
     # Define a list to store the merged rows
     result_data = []
-    
-    i = 0
-    while i < len(df_sorted):
-        # Get the current kernel_name
-        kernel_name = df_sorted.iloc[i]["Kernel_Name"]
-        
+
+    for kernel_name in kernel_single_occurances:
         # Get all rows for the current kernel_name
-        group = df_sorted[df_sorted["Kernel_Name"] == kernel_name]
-        
+        group = df[df["Kernel_Name"] == kernel_name]
+
         # Create a dictionary to store the merged row for the current group
         merged_row = {}
 
@@ -1131,7 +1128,7 @@ def merge_counters_spatial_multiplex(df):
                 delta_time = group["End_Timestamp"] - group["Start_Timestamp"]
                 median_delta_time = delta_time.median()
                 merged_row[col] = merged_row["Start_Timestamp"] + median_delta_time
-                
+
             elif col in expried_column_index:
                 continue
             else:
@@ -1139,18 +1136,22 @@ def merge_counters_spatial_multiplex(df):
                 merged_row[col] = group.iloc[0][col]
 
         # Process counter columns (assumed to be all columns not in non_counter_column_index)
-        counter_columns = [col for col in group.columns if col not in non_counter_column_index]
+        counter_columns = [
+            col for col in group.columns if col not in non_counter_column_index
+        ]
         for counter_col in counter_columns:
             # For counter columns, take the first non-None (or non-NaN) value
-            first_valid_value = group[counter_col].dropna().iloc[0] if not group[counter_col].dropna().empty else np.nan
+            current_valid_counter_group = group[group[counter_col] is not None]
+            first_valid_value = (
+                current_valid_counter_group.iloc[0]
+                if not current_valid_counter_group.empty()
+                else None
+            )
             merged_row[counter_col] = first_valid_value
-        
+
         # Append the merged row to the result list
         result_data.append(merged_row)
-        
-        # Move to the next set of rows with a different Kernel_Name
-        i = group.index[-1] + 1  # The index of the last row in the group
-    
+
     # Create a new DataFrame from the merged rows
     result_df = pd.DataFrame(result_data)
     return result_df

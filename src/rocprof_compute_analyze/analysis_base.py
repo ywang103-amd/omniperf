@@ -57,7 +57,7 @@ class OmniAnalyze_Base:
 
     def get_socs(self):
         return self.__socs
-    
+
     @demarcate
     def spatial_multiplex_merge_counters(self, df):
         merge_counters_spatial_multiplex(df)
@@ -204,7 +204,11 @@ class OmniAnalyze_Base:
             # validate profiling data
 
             # Todo: more err check
-            if not (self.__args.nodes != None or self.__args.list_nodes or self.__args.spatial_multiplexing):
+            if not (
+                self.__args.nodes != None
+                or self.__args.list_nodes
+                or self.__args.spatial_multiplexing
+            ):
                 is_workload_empty(dir[0])
             # else:
 

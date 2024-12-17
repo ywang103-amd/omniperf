@@ -207,7 +207,7 @@ def create_df_pmc(
         return final_df
 
     # "empty list" means all nodes
-    if spatial_multiplexing or not nodes:
+    if spatial_multiplexing and spatial_multiplexing[1] > 0 or not nodes:
         df = pd.DataFrame()
         # todo: more err check
         for subdir in Path(raw_data_root_dir).iterdir():
@@ -219,7 +219,7 @@ def create_df_pmc(
         return df
 
     # regular single node case
-    elif nodes is None:
+    elif spatial_multiplexing and spatial_multiplexing[1] == 0 or nodes is None:
         return create_single_df_pmc(raw_data_root_dir, None, kernel_verbose, verbose)
 
     # specified node list

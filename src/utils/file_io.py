@@ -207,23 +207,15 @@ def create_df_pmc(
         return final_df
 
     if spatial_multiplexing is not None:
-        if (
-            spatial_multiplexing
-            and len(spatial_multiplexing) == 3
-            and spatial_multiplexing[1] == 1
-        ):
-            return create_single_df_pmc(raw_data_root_dir, None, kernel_verbose, verbose)
-
-        else:
-            df = pd.DataFrame()
-            # todo: more err check
-            for subdir in Path(raw_data_root_dir).iterdir():
-                if subdir.is_dir():
-                    new_df = create_single_df_pmc(
-                        subdir, str(subdir.name), kernel_verbose, verbose
-                    )
-                    df = pd.concat([df, new_df])
-            return df
+        df = pd.DataFrame()
+        # todo: more err check
+        for subdir in Path(raw_data_root_dir).iterdir():
+            if subdir.is_dir():
+                new_df = create_single_df_pmc(
+                    subdir, str(subdir.name), kernel_verbose, verbose
+                )
+                df = pd.concat([df, new_df])
+        return df
 
     else:
         # regular single node case

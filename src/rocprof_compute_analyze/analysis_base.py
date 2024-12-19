@@ -60,7 +60,7 @@ class OmniAnalyze_Base:
 
     @demarcate
     def spatial_multiplex_merge_counters(self, df):
-        merge_counters_spatial_multiplex(df)
+        return merge_counters_spatial_multiplex(df)
 
     @demarcate
     def generate_configs(self, arch, config_dir, list_stats, filter_metrics, sys_info):

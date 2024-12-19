@@ -1083,7 +1083,26 @@ def set_locale_encoding():
         console_error(error)
 
 
-def merge_counters_spatial_multiplex(df):
+def reverse_multi_index_df_pmc(final_df):
+    # Extract the first level of the MultiIndex columns (the file names)
+    coll_levels = final_df.columns.get_level_values(0).unique().tolist()
+
+    # Initialize the list of DataFrames
+    dfs = []
+
+    # Loop through each 'coll_level' and rebuild the DataFrames
+    for level in coll_levels:
+        # Select columns that belong to the current 'coll_level'
+        columns_for_level = final_df.xs(level, axis=1, level=0)
+
+        # Append the DataFrame for this level
+        dfs.append(columns_for_level)
+
+    # Return the list of DataFrames and the column levels
+    return dfs, coll_levels
+
+
+def merge_counters_spatial_multiplex(df_multi_index):
     non_counter_column_index = [
         "Dispatch_ID",
         "GPU_ID",
@@ -1108,59 +1127,70 @@ def merge_counters_spatial_multiplex(df):
 
     expried_column_index = [
         "Node",
-        "GPU_ID",
         "PID",
         "TID",
-        "Dispatch_ID",
+        "Queue_ID",
     ]
 
-    # Find the values in Kernel_Name that occur more than once
-    kernel_single_occurances = df["Kernel_Name"].value_counts().index
+    result_dfs = []
 
-    # Define a list to store the merged rows
-    result_data = []
+    dfs, coll_levels = reverse_multi_index_df_pmc(df_multi_index)
+    print("the num of dfs: {}".format(len(dfs)))
 
-    for kernel_name in kernel_single_occurances:
-        # Get all rows for the current kernel_name
-        group = df[df["Kernel_Name"] == kernel_name]
+    for df in dfs:
+        kernel_name_column_name = "Kernel_Name"
+        if not "Kernel_Name" in df and "Name" in df:
+            kernel_name_column_name = "Name"
 
-        # Create a dictionary to store the merged row for the current group
-        merged_row = {}
+        # Find the values in Kernel_Name that occur more than once
+        kernel_single_occurances = df[kernel_name_column_name].value_counts().index
 
-        # Process non-counter columns
-        for col in non_counter_column_index:
-            if col == "Start_Timestamp":
-                # For Start_Timestamp, take the median
-                merged_row[col] = group["Start_Timestamp"].median()
-            elif col == "End_Timestamp":
-                # For End_Timestamp, calculate the median delta time
-                delta_time = group["End_Timestamp"] - group["Start_Timestamp"]
-                median_delta_time = delta_time.median()
-                merged_row[col] = merged_row["Start_Timestamp"] + median_delta_time
+        # Define a list to store the merged rows
+        result_data = []
 
-            elif col in expried_column_index:
-                continue
-            else:
-                # For other non-counter columns, take the first occurrence (0th row)
-                merged_row[col] = group.iloc[0][col]
+        for kernel_name in kernel_single_occurances:
+            # Get all rows for the current kernel_name
+            group = df[df[kernel_name_column_name] == kernel_name]
 
-        # Process counter columns (assumed to be all columns not in non_counter_column_index)
-        counter_columns = [
-            col for col in group.columns if col not in non_counter_column_index
-        ]
-        for counter_col in counter_columns:
-            # For counter columns, take the first non-None (or non-NaN) value
-            current_valid_counter_group = group[group[counter_col] is not None]
-            first_valid_value = (
-                current_valid_counter_group.iloc[0]
-                if not current_valid_counter_group.empty()
-                else None
-            )
-            merged_row[counter_col] = first_valid_value
+            # Create a dictionary to store the merged row for the current group
+            merged_row = {}
 
-        # Append the merged row to the result list
-        result_data.append(merged_row)
+            # Process non-counter columns
+            for col in non_counter_column_index:
+                if col == "Start_Timestamp":
+                    # For Start_Timestamp, take the median
+                    merged_row[col] = group["Start_Timestamp"].median()
+                elif col == "End_Timestamp":
+                    # For End_Timestamp, calculate the median delta time
+                    delta_time = group["End_Timestamp"] - group["Start_Timestamp"]
+                    median_delta_time = delta_time.median()
+                    merged_row[col] = merged_row["Start_Timestamp"] + median_delta_time
 
-    # Create a new DataFrame from the merged rows
-    result_df = pd.DataFrame(result_data)
-    return result_df
+                elif col in expried_column_index:
+                    continue
+                else:
+                    # For other non-counter columns, take the first occurrence (0th row)
+                    merged_row[col] = group.iloc[0][col]
+
+            # Process counter columns (assumed to be all columns not in non_counter_column_index)
+            counter_columns = [
+                col for col in group.columns if col not in non_counter_column_index
+            ]
+            for counter_col in counter_columns:
+                # For counter columns, take the first non-None (or non-NaN) value
+                current_valid_counter_group = group[group[counter_col].notna()]
+                first_valid_value = (
+                    current_valid_counter_group.iloc[0]
+                    if len(current_valid_counter_group) > 0
+                    else None
+                )
+                merged_row[counter_col] = first_valid_value
+
+            # Append the merged row to the result list
+            result_data.append(merged_row)
+
+        # Create a new DataFrame from the merged rows
+        result_dfs.append(pd.DataFrame(result_data))
+
+    final_df = pd.concat(result_dfs, keys=coll_levels, axis=1, copy=False)
+    return final_df

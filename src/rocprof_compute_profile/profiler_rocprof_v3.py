@@ -24,7 +24,9 @@
 
 import os
 import shlex
+from pathlib import Path
 
+import config
 from rocprof_compute_profile.profiler_base import RocProfCompute_Base
 from utils.utils import console_error, console_log, demarcate, replace_timestamps
 
@@ -34,7 +36,7 @@ class rocprof_v3_profiler(RocProfCompute_Base):
         super().__init__(profiling_args, profiler_mode, soc)
         self.ready_to_profile = (
             self.get_args().roof_only
-            and not os.path.isfile(os.path.join(self.get_args().path, "pmc_perf.csv"))
+            and not Path(self.get_args().path).joinpath("pmc_perf.csv").is_file()
             or not self.get_args().roof_only
         )
 
@@ -44,6 +46,13 @@ class rocprof_v3_profiler(RocProfCompute_Base):
         if self.get_args().format_rocprof_output == "csv":
             rocprof_out_format = "csv"
         args = [
+            "-E",
+            os.path.join(
+                str(config.rocprof_compute_home),
+                "rocprof_compute_soc",
+                "profile_configs",
+                "accum_counters.yaml",
+            ),
             # v3 requires output directory argument
             "-d",
             self.get_args().path + "/" + "out",

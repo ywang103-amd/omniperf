@@ -1142,7 +1142,6 @@ def merge_counters_spatial_multiplex(df_multi_index):
     result_dfs = []
 
     dfs, coll_levels = reverse_multi_index_df_pmc(df_multi_index)
-    print("the num of dfs: {}".format(len(dfs)))
 
     for df in dfs:
         kernel_name_column_name = "Kernel_Name"

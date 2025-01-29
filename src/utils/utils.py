@@ -1087,6 +1087,10 @@ def set_locale_encoding():
 
 
 def reverse_multi_index_df_pmc(final_df):
+    # Check if the columns have more than one level
+    if len(final_df.columns.levels) < 2:
+        raise ValueError("Input DataFrame does not have a multi-index column.")
+
     # Extract the first level of the MultiIndex columns (the file names)
     coll_levels = final_df.columns.get_level_values(0).unique().tolist()
 
@@ -1128,7 +1132,7 @@ def merge_counters_spatial_multiplex(df_multi_index):
         "Node",
     ]
 
-    expried_column_index = [
+    expired_column_index = [
         "Node",
         "PID",
         "TID",
@@ -1159,7 +1163,9 @@ def merge_counters_spatial_multiplex(df_multi_index):
             merged_row = {}
 
             # Process non-counter columns
-            for col in non_counter_column_index:
+            for col in [
+                col for col in non_counter_column_index if col not in expired_column_index
+            ]:
                 if col == "Start_Timestamp":
                     # For Start_Timestamp, take the median
                     merged_row[col] = group["Start_Timestamp"].median()
@@ -1168,9 +1174,6 @@ def merge_counters_spatial_multiplex(df_multi_index):
                     delta_time = group["End_Timestamp"] - group["Start_Timestamp"]
                     median_delta_time = delta_time.median()
                     merged_row[col] = merged_row["Start_Timestamp"] + median_delta_time
-
-                elif col in expried_column_index:
-                    continue
                 else:
                     # For other non-counter columns, take the first occurrence (0th row)
                     merged_row[col] = group.iloc[0][col]
@@ -1180,10 +1183,10 @@ def merge_counters_spatial_multiplex(df_multi_index):
                 col for col in group.columns if col not in non_counter_column_index
             ]
             for counter_col in counter_columns:
-                # For counter columns, take the first non-None (or non-NaN) value
+                # for counter columns, take the first non-none (or non-nan) value
                 current_valid_counter_group = group[group[counter_col].notna()]
                 first_valid_value = (
-                    current_valid_counter_group.iloc[0]
+                    current_valid_counter_group.iloc[0][counter_col]
                     if len(current_valid_counter_group) > 0
                     else None
                 )

@@ -497,13 +497,11 @@ Examples:
     )
     analyze_group.add_argument(
         "--spatial-multiplexing",
-        type=int,
-        metavar="",
-        nargs="+",
         dest="spatial_multiplexing",
         required=False,
-        default=None,
-        help="\t\t\tProvide Node ID and GPU number per node.",
+        default=False,
+        action="store_true",
+        help="\t\t\tMode of spatial multiplexing.",
     )
     analyze_group.add_argument(
         "-o",

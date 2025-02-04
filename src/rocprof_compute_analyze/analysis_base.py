@@ -146,7 +146,8 @@ class OmniAnalyze_Base:
         for d in self.__args.path:
             sysinfo_path = (
                 Path(d[0])
-                if self.__args.nodes is None and self.__args.spatial_multiplexing is None
+                if self.__args.nodes is None
+                and self.__args.spatial_multiplexing is not True
                 else file_io.find_1st_sub_dir(d[0])
             )
             sys_info = file_io.load_sys_info(sysinfo_path.joinpath("sysinfo.csv"))

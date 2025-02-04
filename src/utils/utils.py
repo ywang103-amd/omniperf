@@ -1087,6 +1087,9 @@ def set_locale_encoding():
 
 
 def reverse_multi_index_df_pmc(final_df):
+    """
+    Util function to decompose multi-index dataframe.
+    """
     # Check if the columns have more than one level
     if len(final_df.columns.levels) < 2:
         raise ValueError("Input DataFrame does not have a multi-index column.")
@@ -1110,6 +1113,9 @@ def reverse_multi_index_df_pmc(final_df):
 
 
 def merge_counters_spatial_multiplex(df_multi_index):
+    """
+    For spatial multiplexing, this merges counter values for the same kernel that runs on different devices. For time stamp, start time stamp will use median while for end time stamp, it will be equal to the summation between median start stamp and median delta time.
+    """
     non_counter_column_index = [
         "Dispatch_ID",
         "GPU_ID",

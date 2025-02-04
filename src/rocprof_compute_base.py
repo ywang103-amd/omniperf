@@ -351,7 +351,7 @@ class RocProfCompute:
             sysinfo_path = (
                 Path(d[0])
                 if analyzer.get_args().nodes is None
-                and analyzer.get_args().spatial_multiplexing is None
+                and analyzer.get_args().spatial_multiplexing is not True
                 else file_io.find_1st_sub_dir(d[0])
             )
             sys_info = file_io.load_sys_info(sysinfo_path.joinpath("sysinfo.csv"))

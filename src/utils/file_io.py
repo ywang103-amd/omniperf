@@ -214,7 +214,7 @@ def create_df_pmc(
             console_debug("pmc_raw_data final_single_df %s" % final_df.info)
         return final_df
 
-    if spatial_multiplexing is not None:
+    if spatial_multiplexing:
         df = pd.DataFrame()
         # todo: more err check
         for subdir in Path(raw_data_root_dir).iterdir():

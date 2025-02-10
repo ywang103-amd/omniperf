@@ -361,7 +361,7 @@ class RocProfCompute_Base:
                     console_debug(output)
             console_log("profiling", "Current input file: %s" % fname)
 
-            options += self.get_profiler_options(fname, self._soc.get_arch())
+            options = self.get_profiler_options(fname, self._soc.get_arch())
             if (
                 self.__profiler == "rocprofv1"
                 or self.__profiler == "rocprofv2"

@@ -44,7 +44,7 @@ class rocprof_v1_profiler(RocProfCompute_Base):
         
         args = []
         # can be removed in the future. It supports gfx908 + v1
-        if soc_arch == "gfx_908": 
+        if soc_arch == "gfx908": 
             args += ["-m", self.get_workload_perfmon_dir() + "/" + "metrics.xml"]
     
         args += [

@@ -690,10 +690,12 @@ def run_prof(
                     workload_dir + "/out/pmc_1/*/*_converted.csv"
                 )
             elif is_timestamps:
+                # when the input is timestamps, we know counter csv file is not generated and will instead parse kernel trace file
                 results_files_csv = glob.glob(
                     workload_dir + "/out/pmc_1/*/*_kernel_trace.csv"
                 )
             else:
+                # when the input is not for timestamps, and counter csv file is not generated, we assume failed rocprof run and will completely bypass the file generation and merging for current pmc
                 return
 
         else:

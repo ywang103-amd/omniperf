@@ -69,14 +69,6 @@ class gfx908_soc(OmniSoC_Base):
             self._mspec.max_mclk = 1200
             self._mspec.cur_mclk = 1200
 
-    @demarcate
-    def get_profiler_options(self):
-        # Mi100 requires a custom xml config
-        if not using_v3:
-            return ["-m", self.get_workload_perfmon_dir() + "/" + "metrics.xml"]
-        else:
-            return []
-
     # -----------------------
     # Required child methods
     # -----------------------

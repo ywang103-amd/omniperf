@@ -41,12 +41,12 @@ class rocprof_v1_profiler(RocProfCompute_Base):
     def get_profiler_options(self, fname, soc):
         fbase = Path(fname).stem
         app_cmd = self.get_args().remaining
-        
+
         args = []
         # can be removed in the future. It supports gfx908 + v1
-        if soc.get_arch() == "gfx908": 
+        if soc.get_arch() == "gfx908":
             args += ["-m", soc.get_workload_perfmon_dir() + "/" + "metrics.xml"]
-    
+
         args += [
             # v1 requires request for timestamps
             "--timestamp",

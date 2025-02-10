@@ -25,7 +25,7 @@
 from pathlib import Path
 
 import config
-from rocprof_compute_soc.soc_base import OmniSoC_Base, using_v3
+from rocprof_compute_soc.soc_base import OmniSoC_Base
 from utils.utils import console_error, demarcate
 
 

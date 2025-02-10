@@ -27,6 +27,7 @@ from pathlib import Path
 import config
 from rocprof_compute_soc.soc_base import OmniSoC_Base
 from utils.utils import console_error, demarcate
+from rocprof_compute_soc.soc_base import using_v3
 
 
 class gfx908_soc(OmniSoC_Base):
@@ -72,7 +73,10 @@ class gfx908_soc(OmniSoC_Base):
     @demarcate
     def get_profiler_options(self):
         # Mi100 requires a custom xml config
-        return ["-m", self.get_workload_perfmon_dir() + "/" + "metrics.xml"]
+        if not using_v3:
+            return ["-m", self.get_workload_perfmon_dir() + "/" + "metrics.xml"]
+        else:
+            return []
 
     # -----------------------
     # Required child methods

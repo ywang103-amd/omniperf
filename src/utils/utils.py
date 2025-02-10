@@ -595,7 +595,7 @@ def run_prof(
     ):
         new_env = os.environ.copy()
         new_env["ROCPROFILER_INDIVIDUAL_XCC_MODE"] = "1"
-        
+
     is_timestamps = False
     if path(fname).name == "timestamps.txt":
         is_timestamps = True

@@ -25,9 +25,8 @@
 from pathlib import Path
 
 import config
-from rocprof_compute_soc.soc_base import OmniSoC_Base
+from rocprof_compute_soc.soc_base import OmniSoC_Base, using_v3
 from utils.utils import console_error, demarcate
-from rocprof_compute_soc.soc_base import using_v3
 
 
 class gfx908_soc(OmniSoC_Base):

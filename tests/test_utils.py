@@ -84,7 +84,6 @@ def setup_workload_dir(input_dir, suffix="_tmp", clean_existing=True):
             shutil.rmtree(output_dir)
 
     shutil.copytree(input_dir, output_dir)
-    print("++++++++++++++++++++++++++++++setup_workload_dir: the output dir is in: _______________________________________".format(output_dir))
     return output_dir
 
 

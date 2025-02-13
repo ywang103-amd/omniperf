@@ -1154,6 +1154,7 @@ def merge_counters_spatial_multiplex(df_multi_index):
 
     result_dfs = []
 
+    # TODO: will need optimize to avoid this convertion to single index format and do merge directly on multi-index dataframe
     dfs, coll_levels = reverse_multi_index_df_pmc(df_multi_index)
 
     for df in dfs:

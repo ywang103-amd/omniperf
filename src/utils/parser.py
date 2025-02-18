@@ -811,7 +811,7 @@ def eval_metric(dfs, dfs_type, sys_info, raw_pmc_df, debug):
                                 # print("eval_metric", id, expr)
                                 try:
                                     out = eval(compile(row[expr], "<string>", "eval"))
-                                    
+
                                     if np.isnan(out):
                                         row[expr] = ""
                                     else:

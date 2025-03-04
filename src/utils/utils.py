@@ -620,15 +620,18 @@ def run_prof(
         console_error("Profiling execution failed.")
 
     results_files = []
+    is_to_combine_results = False
 
     if rocprof_cmd.endswith("v2"):
         # rocprofv2 has separate csv files for each process
         results_files = glob.glob(workload_dir + "/out/pmc_1/results_*.csv")
+        is_to_combine_results = True
     elif rocprof_cmd.endswith("v3"):
         # rocprofv3 requires additional processing for each process
         results_files = process_rocprofv3_output(
             format_rocprof_output, workload_dir, is_timestamps
         )
+        is_to_combine_results = True
         # kokkos trace output processing for --kokkos-trace
         # TODO: as rocprofv3 --kokkos-trace feature improves, rocprof-compute should make updates accordingly
         if "--kokkos-trace" in options:
@@ -638,17 +641,18 @@ def run_prof(
             process_kokkos_trace_output(workload_dir, fbase)
         # TODO: add hip trace output processing
 
-    # Combine results into single CSV file
-    combined_results = pd.concat(
-        [pd.read_csv(f) for f in results_files], ignore_index=True
-    )
+    if is_to_combine_results is True:
+        # Combine results into single CSV file
+        combined_results = pd.concat(
+            [pd.read_csv(f) for f in results_files], ignore_index=True
+        )
 
-    # Overwrite column to ensure unique IDs.
-    combined_results["Dispatch_ID"] = range(0, len(combined_results))
+        # Overwrite column to ensure unique IDs.
+        combined_results["Dispatch_ID"] = range(0, len(combined_results))
 
-    combined_results.to_csv(
-        workload_dir + "/out/pmc_1/results_" + fbase + ".csv", index=False
-    )
+        combined_results.to_csv(
+            workload_dir + "/out/pmc_1/results_" + fbase + ".csv", index=False
+        )
 
     if new_env:
         # flatten tcc for applicable mi300 input

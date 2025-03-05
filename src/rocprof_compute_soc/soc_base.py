@@ -661,8 +661,20 @@ def perfmon_coalesce(
                         tcc_channel_per_xcd = int(mspec._l2_banks)
 
                         for ctr in f.blocks[block_name].elements:
+                            console_debug("current TCC counter is: {}".format(ctr))
+
                             if "_expand" in ctr:
+                                console_debug(
+                                    "found counter with _expand, it's {}".format(ctr)
+                                )
                                 channel_counters.append(ctr.split("_expand")[0])
+                            elif "_sum" in ctr:
+                                console_debug(
+                                    "found counter with _sum, it's {}".format(ctr)
+                                )
+                                channel_counters.append(ctr.split("_sum")[0])
+
+                        yaml_data = {}
                         for i in range(0, xcds):
                             for j in range(0, tcc_channel_per_xcd):
                                 for c in channel_counters:
@@ -670,7 +682,24 @@ def perfmon_coalesce(
                                         c, (i * tcc_channel_per_xcd) + j
                                     )
                                     pmc.append(tcc_counter_1d_index)
-                                    yaml_data = []
+
+                                    # Ensure that the keys exist before trying to assign values
+                                    if tcc_counter_1d_index not in yaml_data:
+                                        yaml_data[tcc_counter_1d_index] = {
+                                            "architectures": {},
+                                            "description": "",
+                                        }
+
+                                    if (
+                                        arch
+                                        not in yaml_data[tcc_counter_1d_index][
+                                            "architectures"
+                                        ]
+                                    ):
+                                        yaml_data[tcc_counter_1d_index]["architectures"][
+                                            arch
+                                        ] = {}
+
                                     yaml_data[tcc_counter_1d_index]["architectures"][
                                         arch
                                     ][
@@ -692,7 +721,7 @@ def perfmon_coalesce(
                                         )
                         # Handle the rest of the TCC counters
                         for ctr in f.blocks[block_name].elements:
-                            if "_expand" not in ctr:
+                            if "_expand" not in ctr and "_sum" not in ctr:
                                 pmc.append(ctr)
 
                     else:

@@ -46,6 +46,17 @@ import config
 rocprof_cmd = ""
 rocprof_args = ""
 
+# TODO: This is a HACK
+def using_v3():
+    return "ROCPROF" in os.environ.keys() and "rocprofv3" in os.environ["ROCPROF"]
+
+def get_global_yaml_config_file():
+    return os.path.join(
+                str(config.rocprof_compute_home),
+                "rocprof_compute_soc",
+                "profile_configs",
+                "accum_counters.yaml",
+            )
 
 def demarcate(function):
     def wrap_function(*args, **kwargs):
@@ -570,9 +581,12 @@ def run_prof(
 
     console_debug("pmc file: %s" % path(fname).name)
 
+    path_counter_config_yaml = path(fname).with_suffix(".yaml")
     # standard rocprof options
     default_options = ["-i", fname]
     options = default_options + profiler_options
+    if path_counter_config_yaml.exists():
+        options = ["-E", path_counter_config_yaml] + options
 
     # set required env var for mi300
     new_env = None
@@ -581,12 +595,6 @@ def run_prof(
         or mspec.gpu_model.lower() == "mi300x_a1"
         or mspec.gpu_model.lower() == "mi300a_a0"
         or mspec.gpu_model.lower() == "mi300a_a1"
-    ) and (
-        path(fname).name == "pmc_perf_13.txt"
-        or path(fname).name == "pmc_perf_14.txt"
-        or path(fname).name == "pmc_perf_15.txt"
-        or path(fname).name == "pmc_perf_16.txt"
-        or path(fname).name == "pmc_perf_17.txt"
     ):
         new_env = os.environ.copy()
         new_env["ROCPROFILER_INDIVIDUAL_XCC_MODE"] = "1"
@@ -662,7 +670,7 @@ def run_prof(
             workload_dir + "/out/pmc_1/results_" + fbase + ".csv", index=False
         )
 
-    if new_env:
+    if new_env and not using_v3():
         # flatten tcc for applicable mi300 input
         f = path(workload_dir + "/out/pmc_1/results_" + fbase + ".csv")
         xcds = total_xcds(mspec.gpu_model, mspec.compute_partition)

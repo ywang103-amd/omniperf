@@ -381,6 +381,7 @@ class CounterFile:
 def using_v3():
     return "ROCPROF" in os.environ.keys() and os.environ["ROCPROF"].endswith("rocprofv3")
 
+
 @demarcate
 def parse_counters(config_text):
     """
@@ -708,14 +709,13 @@ def perfmon_coalesce(
                             )
 
                             lock.acquire()
-                            file_yaml = open(file_name_yaml, "a")
-                            yaml.dump(
-                                yaml_data,
-                                file_yaml,
-                                default_flow_style=False,
-                                allow_unicode=True,
-                            )
-                            file_yaml.close()
+                            with open(file_name_yaml, "a") as file_yaml:
+                                yaml.dump(
+                                    yaml_data,
+                                    file_yaml,
+                                    default_flow_style=False,
+                                    allow_unicode=True,
+                                )
                             lock.release()
 
                         threads_edit_yaml = []

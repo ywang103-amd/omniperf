@@ -27,6 +27,7 @@ import math
 import os
 import re
 import shutil
+import threading
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from pathlib import Path
@@ -34,7 +35,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
-import threading
 
 from rocprof_compute_base import MI300_CHIP_IDS, SUPPORTED_ARCHS
 from utils.parser import build_in_vars, supported_denom
@@ -42,12 +42,11 @@ from utils.utils import (
     console_debug,
     console_error,
     console_log,
-    convert_metric_id_to_panel_idx,
     demarcate,
+    get_global_yaml_config_file,
+    using_v3,
 )
 
-from utils.utils import using_v3
-from utils.utils import get_global_yaml_config_file
 
 class OmniSoC_Base:
     def __init__(
@@ -668,11 +667,19 @@ def perfmon_coalesce(
                                 channel_counters.append(ctr.split("_expand")[0])
                             elif "_sum" in ctr:
                                 channel_counters.append(ctr.split("_sum")[0])
-                                
-                        channel_counters = pd.Series(channel_counters).drop_duplicates().to_list()
-                        
+
+                        channel_counters = (
+                            pd.Series(channel_counters).drop_duplicates().to_list()
+                        )
+
                         lock = threading.Lock()
-                        def generate_yaml_config_per_pmc(raw_counter_name, tcc_counter_1d_index, xcd_index, channel_index):
+
+                        def generate_yaml_config_per_pmc(
+                            raw_counter_name,
+                            tcc_counter_1d_index,
+                            xcd_index,
+                            channel_index,
+                        ):
                             # Ensure that the keys exist before trying to assign values
                             yaml_data = {}
                             if tcc_counter_1d_index not in yaml_data:
@@ -683,27 +690,23 @@ def perfmon_coalesce(
 
                             if (
                                 arch
-                                not in yaml_data[tcc_counter_1d_index][
-                                    "architectures"
-                                ]
+                                not in yaml_data[tcc_counter_1d_index]["architectures"]
                             ):
                                 yaml_data[tcc_counter_1d_index]["architectures"][
                                     arch
                                 ] = {}
 
-                            yaml_data[tcc_counter_1d_index]["architectures"][
-                                arch
-                            ][
+                            yaml_data[tcc_counter_1d_index]["architectures"][arch][
                                 "expression"
                             ] = "select({},[DIMENSION_XCC=[{}], DIMENSION_INSTANCE=[{}]])".format(
                                 raw_counter_name, xcd_index, channel_index
                             )
                             yaml_data[tcc_counter_1d_index]["description"] = (
-                                "'{} on {}th XCC and {}th channel'".format(
+                                "{} on {}th XCC and {}th channel".format(
                                     raw_counter_name, xcd_index, channel_index
                                 )
                             )
-                            
+
                             lock.acquire()
                             file_yaml = open(file_name_yaml, "a")
                             yaml.dump(
@@ -714,9 +717,9 @@ def perfmon_coalesce(
                             )
                             file_yaml.close()
                             lock.release()
-                        
+
                         threads_edit_yaml = []
-                        
+
                         for i in range(0, xcds):
                             for j in range(0, tcc_channel_per_xcd):
                                 for c in channel_counters:
@@ -724,15 +727,18 @@ def perfmon_coalesce(
                                         c, (i * tcc_channel_per_xcd) + j
                                     )
                                     pmc.append(tcc_counter_1d_index)
-                                    
-                                    thread = threading.Thread(target=generate_yaml_config_per_pmc, args=[c, tcc_counter_1d_index, i,j])
+
+                                    thread = threading.Thread(
+                                        target=generate_yaml_config_per_pmc,
+                                        args=[c, tcc_counter_1d_index, i, j],
+                                    )
                                     threads_edit_yaml.append(thread)
                                     thread.start()
-                                    
+
                         for thread in threads_edit_yaml:
-                            thread.join()                                
-               
-                    # Handle the rest of the TCC counters
+                            thread.join()
+
+                        # Handle the rest of the TCC counters
                         for ctr in f.blocks[block_name].elements:
                             if "_expand" not in ctr and "_sum" not in ctr:
                                 pmc.append(ctr)
@@ -759,7 +765,7 @@ def perfmon_coalesce(
                             with open(file_name_yaml, "a") as file_out:
                                 dic_read = yaml.safe_load(file_read)
                                 for ctr in f.blocks[block_name].elements:
-                                    if ctr in dic_read: 
+                                    if ctr in dic_read:
                                         section_to_dump = {ctr: dic_read[ctr]}
                                         yaml.dump(
                                             section_to_dump,
@@ -768,7 +774,7 @@ def perfmon_coalesce(
                                             allow_unicode=True,
                                         )
                                     pmc.append(ctr)
-                        
+
                     else:
                         for ctr in f.blocks[block_name].elements:
                             pmc.append(ctr)

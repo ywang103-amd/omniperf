@@ -46,17 +46,20 @@ import config
 rocprof_cmd = ""
 rocprof_args = ""
 
+
 # TODO: This is a HACK
 def using_v3():
     return "ROCPROF" in os.environ.keys() and "rocprofv3" in os.environ["ROCPROF"]
 
+
 def get_global_yaml_config_file():
     return os.path.join(
-                str(config.rocprof_compute_home),
-                "rocprof_compute_soc",
-                "profile_configs",
-                "accum_counters.yaml",
-            )
+        str(config.rocprof_compute_home),
+        "rocprof_compute_soc",
+        "profile_configs",
+        "accum_counters.yaml",
+    )
+
 
 def demarcate(function):
     def wrap_function(*args, **kwargs):

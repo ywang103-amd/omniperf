@@ -56,7 +56,7 @@ class rocprof_v3_profiler(RocProfCompute_Base):
             )
         if self.get_args().hip_trace:
             trace_option = "--hip-trace"
-        
+
         args = [
             # v3 requires output directory argument
             "-d",

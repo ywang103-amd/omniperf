@@ -32,7 +32,9 @@ from collections import OrderedDict
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import yaml
+import threading
 
 from rocprof_compute_base import MI300_CHIP_IDS, SUPPORTED_ARCHS
 from utils.parser import build_in_vars, supported_denom
@@ -666,53 +668,70 @@ def perfmon_coalesce(
                                 channel_counters.append(ctr.split("_expand")[0])
                             elif "_sum" in ctr:
                                 channel_counters.append(ctr.split("_sum")[0])
+                                
+                        channel_counters = pd.Series(channel_counters).drop_duplicates().to_list()
+                        
+                        lock = threading.Lock()
+                        def generate_yaml_config_per_pmc(raw_counter_name, tcc_counter_1d_index, xcd_index, channel_index):
+                            # Ensure that the keys exist before trying to assign values
+                            yaml_data = {}
+                            if tcc_counter_1d_index not in yaml_data:
+                                yaml_data[tcc_counter_1d_index] = {
+                                    "architectures": {},
+                                    "description": "",
+                                }
 
-                        yaml_data = {}
-                        with open(file_name_yaml, "w") as file:
-                            for i in range(0, xcds):
-                                for j in range(0, tcc_channel_per_xcd):
-                                    for c in channel_counters:
-                                        tcc_counter_1d_index = "{}[{}]".format(
-                                            c, (i * tcc_channel_per_xcd) + j
-                                        )
-                                        pmc.append(tcc_counter_1d_index)
+                            if (
+                                arch
+                                not in yaml_data[tcc_counter_1d_index][
+                                    "architectures"
+                                ]
+                            ):
+                                yaml_data[tcc_counter_1d_index]["architectures"][
+                                    arch
+                                ] = {}
 
-                                        # Ensure that the keys exist before trying to assign values
-                                        if tcc_counter_1d_index not in yaml_data:
-                                            yaml_data[tcc_counter_1d_index] = {
-                                                "architectures": {},
-                                                "description": "",
-                                            }
-
-                                        if (
-                                            arch
-                                            not in yaml_data[tcc_counter_1d_index][
-                                                "architectures"
-                                            ]
-                                        ):
-                                            yaml_data[tcc_counter_1d_index]["architectures"][
-                                                arch
-                                            ] = {}
-
-                                        yaml_data[tcc_counter_1d_index]["architectures"][
-                                            arch
-                                        ][
-                                            "expression"
-                                        ] = "select({},[DIMENSION_XCC=[{}], DIMENSION_INSTANCE=[{}]])".format(
-                                            c, i, j
-                                        )
-                                        yaml_data[tcc_counter_1d_index]["description"] = (
-                                            "'{} on {}th XCC and {}th channel'".format(
-                                                c, i, j
-                                            )
-                                        )
-                                        
-                                        yaml.dump(
-                                            yaml_data,
-                                            file,
-                                            default_flow_style=False,
-                                            allow_unicode=True,
-                                        )
+                            yaml_data[tcc_counter_1d_index]["architectures"][
+                                arch
+                            ][
+                                "expression"
+                            ] = "select({},[DIMENSION_XCC=[{}], DIMENSION_INSTANCE=[{}]])".format(
+                                raw_counter_name, xcd_index, channel_index
+                            )
+                            yaml_data[tcc_counter_1d_index]["description"] = (
+                                "'{} on {}th XCC and {}th channel'".format(
+                                    raw_counter_name, xcd_index, channel_index
+                                )
+                            )
+                            
+                            lock.acquire()
+                            file_yaml = open(file_name_yaml, "a")
+                            yaml.dump(
+                                yaml_data,
+                                file_yaml,
+                                default_flow_style=False,
+                                allow_unicode=True,
+                            )
+                            file_yaml.close()
+                            lock.release()
+                        
+                        threads_edit_yaml = []
+                        
+                        for i in range(0, xcds):
+                            for j in range(0, tcc_channel_per_xcd):
+                                for c in channel_counters:
+                                    tcc_counter_1d_index = "{}[{}]".format(
+                                        c, (i * tcc_channel_per_xcd) + j
+                                    )
+                                    pmc.append(tcc_counter_1d_index)
+                                    
+                                    thread = threading.Thread(target=generate_yaml_config_per_pmc, args=[c, tcc_counter_1d_index, i,j])
+                                    threads_edit_yaml.append(thread)
+                                    thread.start()
+                                    
+                        for thread in threads_edit_yaml:
+                            thread.join()                                
+               
                     # Handle the rest of the TCC counters
                         for ctr in f.blocks[block_name].elements:
                             if "_expand" not in ctr and "_sum" not in ctr:
@@ -737,16 +756,18 @@ def perfmon_coalesce(
                     if using_v3():
                         yaml_global_config_dir = get_global_yaml_config_file()
                         with open(yaml_global_config_dir, "r") as file_read:
-                            for ctr in f.blocks[block_name].elements:
+                            with open(file_name_yaml, "a") as file_out:
                                 dic_read = yaml.safe_load(file_read)
-                                if ctr in dic_read:
-                                    with open(file_name_yaml, "w") as file:
+                                for ctr in f.blocks[block_name].elements:
+                                    if ctr in dic_read: 
+                                        section_to_dump = {ctr: dic_read[ctr]}
                                         yaml.dump(
-                                            dic_read[ctr],
-                                            file,
+                                            section_to_dump,
+                                            file_out,
                                             default_flow_style=False,
                                             allow_unicode=True,
                                         )
+                                    pmc.append(ctr)
                         
                     else:
                         for ctr in f.blocks[block_name].elements:

@@ -586,7 +586,7 @@ def run_prof(
     default_options = ["-i", fname]
     options = default_options + profiler_options
     if path_counter_config_yaml.exists():
-        options = ["-E", path_counter_config_yaml] + options
+        options = ["-E", str(path_counter_config_yaml)] + options
 
     # set required env var for mi300
     new_env = None
@@ -604,6 +604,7 @@ def run_prof(
         is_timestamps = True
     time_1 = time.time()
 
+    console_debug("rocprof command: {}".format([rocprof_cmd] + options))
     # profile the app
     if new_env:
         success, output = capture_subprocess_output(

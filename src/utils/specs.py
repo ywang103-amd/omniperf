@@ -42,6 +42,7 @@ from utils.tty import get_table_string
 from utils.utils import (
     console_error,
     console_log,
+    console_debug,
     console_warning,
     get_version,
     total_xcds,
@@ -137,43 +138,43 @@ def generate_machine_specs(args, sysinfo: dict = None):
     rocm_version = get_rocm_ver().strip()
     # FIXME: use device
     
-    vbios_info = None
+    vbios = None
     compute_partition = None
     memory_partition = None
     
     try:
         amdsmi_init()
-        num_gpus = amdsmi_get_device_count()
+        device_handles = amdsmi_get_processor_handles()
         
-        if not num_gpus > 0:
+        if not len(device_handles) > 0:
             console_error("No GPU detected by amd-smi")
         
-        for i in range(num_gpus):
-            device_handle = amdsmi_get_device_handle_by_index(i)
-            
+        last_device_handle = None
+        for device_handle in device_handles:
             # Retrieve VBIOS version
-            vbios_info_ = amdsmi_get_vbios_info(device_handle)
-            print(f"GPU {i} VBIOS Version: {vbios_info.vbios_version}")
+            vbios_info = amdsmi_get_gpu_vbios_info(device_handle)
+            vbios_info_version_ = vbios_info['version']
+            console_debug(f"GPU {str(device_handle)} VBIOS Version: {vbios_info_version_}")
 
             # Retrieve Compute Partition Mode
             compute_partition_ = amdsmi_get_gpu_compute_partition(device_handle)
-            print(f"GPU {i} Compute Partition Mode: {compute_partition}")
+            console_debug(f"GPU {str(device_handle)} Compute Partition Mode: {compute_partition_}")
 
             # Retrieve Memory Partition Mode
             memory_partition_ = amdsmi_get_gpu_memory_partition(device_handle)
-            print(f"GPU {i} Memory Partition Mode: {memory_partition}")
+            console_debug(f"GPU {str(device_handle)} Memory Partition Mode: {memory_partition_}")
             
-            if not i == 0:
-                if vbios_info_ != vbios_info:
-                    console_error("device {} has vbios version of {} and it's different from device {}, which has vbios version of {}".format(str(i), vbios_info_, str(i-1), vbios_info))
+            if not last_device_handle is None:
+                if vbios_info_version_ != vbios:
+                    console_error("device {} has vbios version of {} and it's different from device {}, which has vbios version of {}".format(str(amdsmi_get_gpu_device_uuid(device_handle)), vbios_info_version_, str(amdsmi_get_gpu_device_uuid(last_device_handle)), vbios))
                     
                 if compute_partition_ != compute_partition:
-                    console_error("device {} has compute partition mode of {} and it's different from device {}, which has compute partition mode of {}".format(str(i), compute_partition_, str(i-1), compute_partition))
+                    console_error("device {} has compute partition mode of {} and it's different from device {}, which has compute partition mode of {}".format(str(amdsmi_get_gpu_device_uuid(device_handle)), compute_partition_, str(amdsmi_get_gpu_device_uuid(last_device_handle)), compute_partition))
                     
                 if memory_partition_ != memory_partition:
-                    console_error("device {} has memory partition mode of {} and it's different from device {}, which has memory partition mode of {}".format(str(i), memory_partition_, str(i-1), memory_partition))
-                    
-            vbios_info = vbios_info_
+                    console_error("device {} has memory partition mode of {} and it's different from device {}, which has memory partition mode of {}".format(str(amdsmi_get_gpu_device_uuid(device_handle)), memory_partition_, str(amdsmi_get_gpu_device_uuid(last_device_handle)), memory_partition))
+            
+            vbios = vbios_info_version_
             compute_partition = compute_partition_
             memory_partition = memory_partition_
             
@@ -182,6 +183,8 @@ def generate_machine_specs(args, sysinfo: dict = None):
                 
             if memory_partition is None:
                 memory_partition = "NA"
+                
+            last_device_handle = device_handle
  
     except AmdSmiException as e:
         console_error(f"AMD-SMI Error: {e}")

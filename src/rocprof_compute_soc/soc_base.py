@@ -174,6 +174,7 @@ class OmniSoC_Base:
                 for device in devices:
                     clock_measure = amdsmi_get_clock_info(device, AmdSmiClkType.MEM)
                     self._mspec.max_mclk = clock_measure['max_clk']
+                    console_debug("AMD-SMI result: max_mclk is {} for device {}".format(clock_measure['max_clk'], device))
     
         except AmdSmiException as e:
             console_error(f"AMD-SMI Error: {e}")

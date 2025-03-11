@@ -33,6 +33,7 @@ from dataclasses import dataclass, field, fields
 from datetime import datetime
 from math import ceil
 from pathlib import Path as path
+from amdsmi import *
 
 import pandas as pd
 
@@ -135,17 +136,60 @@ def generate_machine_specs(args, sysinfo: dict = None):
         linux_distro = ""
     rocm_version = get_rocm_ver().strip()
     # FIXME: use device
-    vbios = search(r"VBIOS version: (.*?)$", run(["rocm-smi", "-v"], exit_on_error=True))
-    compute_partition = search(
-        r"Compute Partition:\s*(\w+)", run(["rocm-smi", "--showcomputepartition"])
-    )
-    if compute_partition is None:
-        compute_partition = "NA"
-    memory_partition = search(
-        r"Memory Partition:\s*(\w+)", run(["rocm-smi", "--showmemorypartition"])
-    )
-    if memory_partition is None:
-        memory_partition = "NA"
+    
+    vbios_info = None
+    compute_partition = None
+    memory_partition = None
+    
+    try:
+        amdsmi_init()
+        num_gpus = amdsmi_get_device_count()
+        
+        if not num_gpus > 0:
+            console_error("No GPU detected by amd-smi")
+        
+        for i in range(num_gpus):
+            device_handle = amdsmi_get_device_handle_by_index(i)
+            
+            # Retrieve VBIOS version
+            vbios_info_ = amdsmi_get_vbios_info(device_handle)
+            print(f"GPU {i} VBIOS Version: {vbios_info.vbios_version}")
+
+            # Retrieve Compute Partition Mode
+            compute_partition_ = amdsmi_get_gpu_compute_partition(device_handle)
+            print(f"GPU {i} Compute Partition Mode: {compute_partition}")
+
+            # Retrieve Memory Partition Mode
+            memory_partition_ = amdsmi_get_gpu_memory_partition(device_handle)
+            print(f"GPU {i} Memory Partition Mode: {memory_partition}")
+            
+            if not i == 0:
+                if vbios_info_ != vbios_info:
+                    console_error("device {} has vbios version of {} and it's different from device {}, which has vbios version of {}".format(str(i), vbios_info_, str(i-1), vbios_info))
+                    
+                if compute_partition_ != compute_partition:
+                    console_error("device {} has compute partition mode of {} and it's different from device {}, which has compute partition mode of {}".format(str(i), compute_partition_, str(i-1), compute_partition))
+                    
+                if memory_partition_ != memory_partition:
+                    console_error("device {} has memory partition mode of {} and it's different from device {}, which has memory partition mode of {}".format(str(i), memory_partition_, str(i-1), memory_partition))
+                    
+            vbios_info = vbios_info_
+            compute_partition = compute_partition_
+            memory_partition = memory_partition_
+            
+            if compute_partition is None:
+                compute_partition = "NA"
+                
+            if memory_partition is None:
+                memory_partition = "NA"
+ 
+    except AmdSmiException as e:
+        console_error(f"AMD-SMI Error: {e}")
+    finally:
+        try:
+            amdsmi_shut_down()
+        except AmdSmiException as e:
+            console_error(f"AMD-SMI Shutdown error: {e}")
 
     ##########################################
     ## B. SoC Specs

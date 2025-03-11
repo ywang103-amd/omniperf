@@ -27,6 +27,7 @@ import math
 import os
 import re
 import shutil
+from amdsmi import *
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from pathlib import Path
@@ -164,8 +165,23 @@ class OmniSoC_Base:
         )
 
         # we get the max mclk from rocm-smi --showmclkrange
-        rocm_smi_mclk = run(["rocm-smi", "--showmclkrange"], exit_on_error=True)
-        self._mspec.max_mclk = search(r"(\d+)Mhz\s*$", rocm_smi_mclk)
+        try:
+            amdsmi_init()
+            devices = amdsmi_get_processor_handles()
+            if len(devices) == 0:
+                console_error("No GPUs on machine")
+            else:
+                for device in devices:
+                    clock_measure = amdsmi_get_clock_info(device, AmdSmiClkType.MEM)
+                    self._mspec.max_mclk = clock_measure['max_clk']
+    
+        except AmdSmiException as e:
+            console_error(f"AMD-SMI Error: {e}")
+        finally:
+            try:
+                amdsmi_shut_down()
+            except AmdSmiException as e:
+                console_error(f"AMD-SMI Shutdown error: {e}")
 
         # these are just max's now, because the parsing was broken and this was inconsistent
         # with how we use the clocks elsewhere (all max, all the time)

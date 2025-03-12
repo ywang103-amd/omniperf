@@ -27,13 +27,20 @@ import math
 import os
 import re
 import shutil
-from amdsmi import *
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from pathlib import Path
 
 import numpy as np
 import yaml
+from amdsmi import (
+    amdsmi_get_clock_info,
+    amdsmi_get_processor_handles,
+    amdsmi_init,
+    amdsmi_shut_down,
+    AmdSmiException,
+    AmdSmiClkType,
+)
 
 from rocprof_compute_base import MI300_CHIP_IDS, SUPPORTED_ARCHS
 from utils.parser import build_in_vars, supported_denom
@@ -173,16 +180,20 @@ class OmniSoC_Base:
             else:
                 for device in devices:
                     clock_measure = amdsmi_get_clock_info(device, AmdSmiClkType.MEM)
-                    self._mspec.max_mclk = clock_measure['max_clk']
-                    console_debug("AMD-SMI result: max_mclk is {} for device {}".format(clock_measure['max_clk'], device))
-    
+                    self._mspec.max_mclk = clock_measure["max_clk"]
+                    console_debug(
+                        "AMD-SMI result: max_mclk is {} for device {}".format(
+                            clock_measure["max_clk"], device
+                        )
+                    )
+
         except AmdSmiException as e:
-            console_error(f"AMD-SMI Error: {e}")
+            console_error(f"AMD-SMI Error: {e}", False)
         finally:
             try:
                 amdsmi_shut_down()
             except AmdSmiException as e:
-                console_error(f"AMD-SMI Shutdown error: {e}")
+                console_error(f"AMD-SMI Shutdown error: {e}", False)
 
         # these are just max's now, because the parsing was broken and this was inconsistent
         # with how we use the clocks elsewhere (all max, all the time)

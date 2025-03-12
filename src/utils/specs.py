@@ -33,16 +33,25 @@ from dataclasses import dataclass, field, fields
 from datetime import datetime
 from math import ceil
 from pathlib import Path as path
-from amdsmi import *
 
 import pandas as pd
+from amdsmi import (
+    amdsmi_get_gpu_compute_partition,
+    amdsmi_get_gpu_device_uuid,
+    amdsmi_get_gpu_memory_partition,
+    amdsmi_get_gpu_vbios_info,
+    amdsmi_get_processor_handles,
+    amdsmi_init,
+    amdsmi_shut_down,
+    AmdSmiException,
+)
 
 import config
 from utils.tty import get_table_string
 from utils.utils import (
+    console_debug,
     console_error,
     console_log,
-    console_debug,
     console_warning,
     get_version,
     total_xcds,
@@ -137,55 +146,85 @@ def generate_machine_specs(args, sysinfo: dict = None):
         linux_distro = ""
     rocm_version = get_rocm_ver().strip()
     # FIXME: use device
-    
+
     vbios = None
     compute_partition = None
     memory_partition = None
-    
+
     try:
         amdsmi_init()
         device_handles = amdsmi_get_processor_handles()
-        
+
         if not len(device_handles) > 0:
             console_error("No GPU detected by amd-smi")
-        
+
         last_device_handle = None
         for device_handle in device_handles:
             # Retrieve VBIOS version
             vbios_info = amdsmi_get_gpu_vbios_info(device_handle)
-            vbios_info_version_ = vbios_info['version']
-            console_debug(f"GPU {str(device_handle)} VBIOS Version: {vbios_info_version_}")
+            vbios_info_version_ = vbios_info["version"]
+            console_debug(
+                f"GPU {str(device_handle)} VBIOS Version: {vbios_info_version_}"
+            )
 
             # Retrieve Compute Partition Mode
             compute_partition_ = amdsmi_get_gpu_compute_partition(device_handle)
-            console_debug(f"GPU {str(device_handle)} Compute Partition Mode: {compute_partition_}")
+            console_debug(
+                f"GPU {str(device_handle)} Compute Partition Mode: {compute_partition_}"
+            )
 
             # Retrieve Memory Partition Mode
             memory_partition_ = amdsmi_get_gpu_memory_partition(device_handle)
-            console_debug(f"GPU {str(device_handle)} Memory Partition Mode: {memory_partition_}")
-            
+            console_debug(
+                f"GPU {str(device_handle)} Memory Partition Mode: {memory_partition_}"
+            )
+
             if not last_device_handle is None:
                 if vbios_info_version_ != vbios:
-                    console_error("device {} has vbios version of {} and it's different from device {}, which has vbios version of {}".format(str(amdsmi_get_gpu_device_uuid(device_handle)), vbios_info_version_, str(amdsmi_get_gpu_device_uuid(last_device_handle)), vbios))
-                    
+                    console_error(
+                        "device {} has vbios version of {} and it's different from device {}, which has vbios version of {}".format(
+                            str(amdsmi_get_gpu_device_uuid(device_handle)),
+                            vbios_info_version_,
+                            str(amdsmi_get_gpu_device_uuid(last_device_handle)),
+                            vbios,
+                        ),
+                        False,
+                    )
+
                 if compute_partition_ != compute_partition:
-                    console_error("device {} has compute partition mode of {} and it's different from device {}, which has compute partition mode of {}".format(str(amdsmi_get_gpu_device_uuid(device_handle)), compute_partition_, str(amdsmi_get_gpu_device_uuid(last_device_handle)), compute_partition))
-                    
+                    console_error(
+                        "device {} has compute partition mode of {} and it's different from device {}, which has compute partition mode of {}".format(
+                            str(amdsmi_get_gpu_device_uuid(device_handle)),
+                            compute_partition_,
+                            str(amdsmi_get_gpu_device_uuid(last_device_handle)),
+                            compute_partition,
+                        ),
+                        False,
+                    )
+
                 if memory_partition_ != memory_partition:
-                    console_error("device {} has memory partition mode of {} and it's different from device {}, which has memory partition mode of {}".format(str(amdsmi_get_gpu_device_uuid(device_handle)), memory_partition_, str(amdsmi_get_gpu_device_uuid(last_device_handle)), memory_partition))
-            
+                    console_error(
+                        "device {} has memory partition mode of {} and it's different from device {}, which has memory partition mode of {}".format(
+                            str(amdsmi_get_gpu_device_uuid(device_handle)),
+                            memory_partition_,
+                            str(amdsmi_get_gpu_device_uuid(last_device_handle)),
+                            memory_partition,
+                        ),
+                        False,
+                    )
+
             vbios = vbios_info_version_
             compute_partition = compute_partition_
             memory_partition = memory_partition_
-            
+
             if compute_partition is None:
                 compute_partition = "NA"
-                
+
             if memory_partition is None:
                 memory_partition = "NA"
-                
+
             last_device_handle = device_handle
- 
+
     except AmdSmiException as e:
         console_error(f"AMD-SMI Error: {e}")
     finally:

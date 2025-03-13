@@ -34,12 +34,12 @@ from pathlib import Path
 import numpy as np
 import yaml
 from amdsmi import (
+    AmdSmiClkType,
+    AmdSmiException,
     amdsmi_get_clock_info,
     amdsmi_get_processor_handles,
     amdsmi_init,
     amdsmi_shut_down,
-    AmdSmiException,
-    AmdSmiClkType,
 )
 
 from rocprof_compute_base import MI300_CHIP_IDS, SUPPORTED_ARCHS

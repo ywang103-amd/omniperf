@@ -36,6 +36,7 @@ from pathlib import Path as path
 
 import pandas as pd
 from amdsmi import (
+    AmdSmiException,
     amdsmi_get_gpu_compute_partition,
     amdsmi_get_gpu_device_uuid,
     amdsmi_get_gpu_memory_partition,
@@ -43,7 +44,6 @@ from amdsmi import (
     amdsmi_get_processor_handles,
     amdsmi_init,
     amdsmi_shut_down,
-    AmdSmiException,
 )
 
 import config

@@ -663,9 +663,15 @@ def run_prof(
         # TODO: add hip trace output processing
 
         # Combine results into single CSV file
-        combined_results = pd.concat(
-            [pd.read_csv(f) for f in results_files], ignore_index=True
-        )
+        if results_files:
+            combined_results = pd.concat(
+                [pd.read_csv(f) for f in results_files], ignore_index=True
+            )
+        else:
+            console_warning(
+                f"Cannot write results for {fbase}.csv due to no counter csv files generated."
+            )
+            return
 
         # Overwrite column to ensure unique IDs.
         combined_results["Dispatch_ID"] = range(0, len(combined_results))
@@ -773,7 +779,8 @@ def process_rocprofv3_output(rocprof_output, workload_dir, is_timestamps):
             )
         else:
             # when the input is not for timestamps, and counter csv file is not generated, we assume failed rocprof run and will completely bypass the file generation and merging for current pmc
-            console_error("No counter csv files generated, rocprofv3 run failed!!!")
+            results_files_csv = []
+            console_warning("No counter csv files generated, rocprofv3 run failed!!!")
 
     else:
         console_error("The output file of rocprofv3 can only support json or csv!!!")
@@ -1132,10 +1139,10 @@ def print_status(msg):
 
 def set_locale_encoding():
     try:
-        locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
+        locale.setlocale(locale.LC_ALL, "C.UTF-8")
     except locale.Error as error:
         console_error(
-            "Please ensure that the 'en_US.UTF-8' locale is available on your system.",
+            "Please ensure that the 'C.UTF-8' locale is available on your system.",
             exit=False,
         )
         console_error(error)

@@ -42,6 +42,7 @@ from utils.utils import (
     console_debug,
     console_error,
     console_log,
+    convert_metric_id_to_panel_idx,
     demarcate,
     get_global_yaml_config_file,
     using_v3,

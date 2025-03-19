@@ -369,8 +369,9 @@ class LimitedSet:
 # block limited according to perfmon config.
 class CounterFile:
     def __init__(self, name, perfmon_config) -> None:
-        self.file_name_txt = name + ".txt"
-        self.file_name_yaml = name + ".yaml"
+        name_no_extension = name.split(".")[0]
+        self.file_name_txt = name_no_extension + ".txt"
+        self.file_name_yaml = name_no_extension + ".yaml"
         self.blocks = {b: LimitedSet(v) for b, v in perfmon_config.items()}
 
     def add(self, counter) -> bool:

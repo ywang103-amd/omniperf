@@ -672,9 +672,7 @@ def perfmon_coalesce(
                         tcc_channel_per_xcd = int(mspec._l2_banks)
 
                         for ctr in f.blocks[block_name].elements:
-                            if "_expand" in ctr:
-                                channel_counters.append(ctr.split("_expand")[0])
-                            elif "_sum" in ctr:
+                            if "_sum" in ctr:
                                 channel_counters.append(ctr.split("_sum")[0])
 
                         channel_counters = (
@@ -717,6 +715,7 @@ def perfmon_coalesce(
                             )
 
                             lock.acquire()
+                            pmc.append(tcc_counter_1d_index)
                             with open(file_name_yaml, "a") as file_yaml:
                                 yaml.dump(
                                     yaml_data,
@@ -734,7 +733,6 @@ def perfmon_coalesce(
                                     tcc_counter_1d_index = "{}[{}]".format(
                                         c, (i * tcc_channel_per_xcd) + j
                                     )
-                                    pmc.append(tcc_counter_1d_index)
 
                                     thread = threading.Thread(
                                         target=generate_yaml_config_per_pmc,

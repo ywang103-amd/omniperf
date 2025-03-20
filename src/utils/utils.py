@@ -52,12 +52,15 @@ def using_v3():
     return "ROCPROF" in os.environ.keys() and "rocprofv3" in os.environ["ROCPROF"]
 
 
-def get_global_yaml_config_file():
-    return os.path.join(
-        str(config.rocprof_compute_home),
-        "rocprof_compute_soc",
-        "profile_configs",
-        "accum_counters.yaml",
+# TODO: This is a HACK
+def get_default_yaml_counter_file():
+    """Return the path of the default derivative counters' definatin's yaml file that we current use to store accumulated counters' defination. It will possibly be removed later on"""
+    return str(
+        config.rocprof_compute_home.joinpath(
+            "rocprof_compute_soc",
+            "profile_configs",
+            "accum_counters.yaml",
+        )
     )
 
 

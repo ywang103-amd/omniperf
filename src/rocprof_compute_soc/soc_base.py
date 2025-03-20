@@ -44,7 +44,7 @@ from utils.utils import (
     console_log,
     convert_metric_id_to_panel_idx,
     demarcate,
-    get_global_yaml_config_file,
+    get_default_yaml_counter_file,
     using_v3,
 )
 
@@ -768,7 +768,7 @@ def perfmon_coalesce(
 
                 else:
                     if using_v3():
-                        yaml_global_config_dir = get_global_yaml_config_file()
+                        yaml_global_config_dir = get_default_yaml_counter_file()
                         with open(yaml_global_config_dir, "r") as file_read:
                             with open(file_name_yaml, "a") as file_out:
                                 dic_read = yaml.safe_load(file_read)

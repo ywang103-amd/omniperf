@@ -53,7 +53,7 @@ def using_v3():
 
 
 # TODO: This is a HACK
-def get_default_yaml_counter_file():
+def get_default_accumulate_counter_file_ymal():
     """Return the path of the default derivative counters' definatin's yaml file that we current use to store accumulated counters' defination. It will possibly be removed later on"""
     return str(
         config.rocprof_compute_home.joinpath(

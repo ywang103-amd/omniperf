@@ -57,7 +57,7 @@ def using_v1():
 
 
 def using_v3():
-    return "ROCPROF" in os.environ.keys() and "rocprofv3" in os.environ["ROCPROF"]
+    return "ROCPROF" in os.environ.keys() and os.environ["ROCPROF"].endswith("rocprofv3")
 
 
 def demarcate(function):
@@ -491,6 +491,7 @@ def v3_counter_csv_to_v2_csv(counter_file, agent_info_filepath, converted_csv_fi
         values="Counter_Value",
     ).reset_index()
 
+    # NB: Agent_Id is int in older rocporfv3, now switched to string with prefix "Agent ". We need to make sure handle both cases.
     console_debug(
         "The type of Agent ID from counter csv file is {}".format(
             result["Agent_Id"].dtype

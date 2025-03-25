@@ -5,7 +5,14 @@ Full documentation for ROCm Compute Profiler is available at [https://rocm.docs.
 ## ROCm Compute Profiler 3.1.0 for ROCm 6.4.2
 
 ### Added
+
 * change dependency from rocm-smi to amd-smi
+* Datatype selection option for roofline profiling
+  * --roofline-data-type / -R option added to specify which datatypes the user wants to capture in the roofline PDF plot outputs
+  * Default is FP32, but user can specify as many types as desired to overlay on the same plot output
+
+### Changed
+
 
 ### Resolved issues
 

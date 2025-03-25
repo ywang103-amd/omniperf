@@ -491,6 +491,15 @@ def v3_counter_csv_to_v2_csv(counter_file, agent_info_filepath, converted_csv_fi
         values="Counter_Value",
     ).reset_index()
 
+    # NB: Agent_Id is int in older rocporfv3, now switched to string with prefix "Agent ". We need to make sure handle both cases.
+    console_debug(
+        "The type of Agent ID from counter csv file is {}".format(
+            result["Agent_Id"].dtype
+        )
+    )
+    if result["Agent_Id"].dtype == "object":
+        result["Agent_Id"] = result["Agent_Id"].str.extract("(\d+)").astype("int64")
+
     # Grab the Wave_Front_Size column from agent info
     result = result.merge(
         pd_agent_info[["Node_Id", "Wave_Front_Size"]],

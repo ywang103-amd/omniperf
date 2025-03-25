@@ -57,7 +57,7 @@ def using_v1():
 
 
 def using_v3():
-    return "ROCPROF" in os.environ.keys() and "rocprofv3" in os.environ["ROCPROF"]
+    return "ROCPROF" in os.environ.keys() and os.environ["ROCPROF"].endswith("rocprofv3")
 
 
 def demarcate(function):
@@ -587,7 +587,7 @@ def run_prof(
     # standard rocprof options
     default_options = ["-i", fname]
     options = default_options + profiler_options
-    if path_counter_config_yaml.exists():
+    if using_v3() and path_counter_config_yaml.exists():
         options = ["-E", str(path_counter_config_yaml)] + options
 
     # set required env var for mi300

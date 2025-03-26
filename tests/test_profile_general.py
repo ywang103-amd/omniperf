@@ -749,7 +749,6 @@ def test_block_TCP(binary_handler_profile_rocprof_compute):
         "pmc_perf_6.csv",
         "pmc_perf_7.csv",
         "pmc_perf_8.csv",
-        "pmc_perf_9.csv",
         "sysinfo.csv",
         "timestamps.csv",
     ]
@@ -782,6 +781,10 @@ def test_block_TCC(binary_handler_profile_rocprof_compute):
         "pmc_perf_5.csv",
         "pmc_perf_6.csv",
         "pmc_perf_7.csv",
+        "pmc_perf_8.csv",
+        "pmc_perf_9.csv",
+        "pmc_perf_10.csv",
+        "pmc_perf_11.csv",
         "sysinfo.csv",
         "timestamps.csv",
     ]

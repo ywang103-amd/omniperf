@@ -753,6 +753,23 @@ def test_block_TCP(binary_handler_profile_rocprof_compute):
         "timestamps.csv",
     ]
 
+    if soc == "MI200":
+        expected_csvs = [
+            "pmc_perf.csv",
+            "pmc_perf_0.csv",
+            "pmc_perf_1.csv",
+            "pmc_perf_2.csv",
+            "pmc_perf_3.csv",
+            "pmc_perf_4.csv",
+            "pmc_perf_5.csv",
+            "pmc_perf_6.csv",
+            "pmc_perf_7.csv",
+            "pmc_perf_8.csv",
+            "pmc_perf_9.csv",
+            "sysinfo.csv",
+            "timestamps.csv",
+        ]
+
     assert sorted(list(file_dict.keys())) == sorted(expected_csvs)
 
     validate(
@@ -788,6 +805,23 @@ def test_block_TCC(binary_handler_profile_rocprof_compute):
         "sysinfo.csv",
         "timestamps.csv",
     ]
+
+    if soc == "MI200":
+        expected_csvs = [
+            "pmc_perf.csv",
+            "pmc_perf_0.csv",
+            "pmc_perf_1.csv",
+            "pmc_perf_2.csv",
+            "pmc_perf_3.csv",
+            "pmc_perf_4.csv",
+            "pmc_perf_5.csv",
+            "pmc_perf_6.csv",
+            "pmc_perf_7.csv",
+            "pmc_perf_8.csv",
+            "pmc_perf_9.csv",
+            "sysinfo.csv",
+            "timestamps.csv",
+        ]
 
     assert sorted(list(file_dict.keys())) == sorted(expected_csvs)
 

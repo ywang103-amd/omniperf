@@ -42,6 +42,7 @@ from pathlib import Path as path
 import pandas as pd
 
 import config
+from utils.logger import console_debug, console_error, console_log, console_warning
 from utils.mi_gpu_spec import get_mi300_num_xcds
 
 rocprof_cmd = ""
@@ -58,54 +59,6 @@ def using_v1():
 
 def using_v3():
     return "ROCPROF" in os.environ.keys() and os.environ["ROCPROF"].endswith("rocprofv3")
-
-
-def demarcate(function):
-    def wrap_function(*args, **kwargs):
-        logging.trace("----- [entering function] -> %s()" % (function.__qualname__))
-        result = function(*args, **kwargs)
-        logging.trace("----- [exiting  function] -> %s()" % function.__qualname__)
-        return result
-
-    return wrap_function
-
-
-def console_error(*argv, exit=True):
-    if len(argv) > 1:
-        logging.error(f"[{argv[0]}] {argv[1]}")
-    else:
-        logging.error(f"{argv[0]}")
-    if exit:
-        sys.exit(1)
-
-
-def console_log(*argv, indent_level=0):
-    indent = ""
-    if indent_level >= 1:
-        indent = " " * 3 * indent_level + "|-> "  # spaces per indent level
-
-    if len(argv) > 1:
-        logging.info(indent + f"[{argv[0]}] {argv[1]}")
-    else:
-        logging.info(indent + f"{argv[0]}")
-
-
-def console_debug(*argv):
-    if len(argv) > 1:
-        logging.debug(f"[{argv[0]}] {argv[1]}")
-    else:
-        logging.debug(f"{argv[0]}")
-
-
-def console_warning(*argv):
-    if len(argv) > 1:
-        logging.warning(f"[{argv[0]}] {argv[1]}")
-    else:
-        logging.warning(f"{argv[0]}")
-
-
-def trace_logger(message, *args, **kwargs):
-    logging.log(logging.TRACE, message, *args, **kwargs)
 
 
 def get_version(rocprof_compute_home) -> dict:
@@ -691,7 +644,7 @@ def run_prof(
     if new_env and not using_v3() and not using_v1():
         # flatten tcc for applicable mi300 input
         f = path(workload_dir + "/out/pmc_1/results_" + fbase + ".csv")
-        xcds = get_mi300_num_xcds(mspec.gpu_model, mspec.compute_partition)
+        xcds = total_xcds(mspec.gpu_model, mspec.compute_partition)
         df = flatten_tcc_info_across_xcds(f, xcds, int(mspec._l2_banks))
         df.to_csv(f, index=False)
 
@@ -746,38 +699,40 @@ def process_rocprofv3_output(rocprof_output, workload_dir, is_timestamps):
             csv_file = pathlib.Path(json_file).with_suffix(".csv")
             v3_json_to_csv(json_file, csv_file)
         results_files_csv = glob.glob(workload_dir + "/out/pmc_1/*/*.csv")
+
     elif rocprof_output == "csv":
         counter_info_csvs = glob.glob(
             workload_dir + "/out/pmc_1/*/*_counter_collection.csv"
         )
         existing_counter_files_csv = [d for d in counter_info_csvs if path(d).is_file()]
 
-        if len(existing_counter_files_csv) > 0:
+        if existing_counter_files_csv:
             for counter_file in existing_counter_files_csv:
-                current_dir = str(path(counter_file).parent)
-                agent_info_filepath = str(
-                    path(current_dir).joinpath(
-                        path(counter_file).name.replace(
-                            "_counter_collection", "_agent_info"
-                        )
-                    )
+                counter_path = path(counter_file)
+                current_dir = counter_path.parent
+
+                agent_info_filepath = current_dir / counter_path.name.replace(
+                    "_counter_collection", "_agent_info"
                 )
-                if not path(agent_info_filepath).is_file():
+
+                if not agent_info_filepath.is_file():
                     raise ValueError(
                         '{} has no coresponding "agent info" file'.format(counter_file)
                     )
 
-                converted_csv_file = str(
-                    path(current_dir).joinpath(
-                        path(counter_file).name.replace(
-                            "_counter_collection", "_converted"
-                        )
-                    )
+                converted_csv_file = current_dir / counter_path.name.replace(
+                    "_counter_collection", "_converted"
                 )
 
-                v3_counter_csv_to_v2_csv(
-                    counter_file, agent_info_filepath, converted_csv_file
-                )
+                try:
+                    v3_counter_csv_to_v2_csv(
+                        counter_file, str(agent_info_filepath), str(converted_csv_file)
+                    )
+                except Exception as e:
+                    console_warning(
+                        f"Error converting {counter_file} from v3 to v2 csv: {e}"
+                    )
+                    return []
 
             results_files_csv = glob.glob(workload_dir + "/out/pmc_1/*/*_converted.csv")
         elif is_timestamps:
@@ -1163,13 +1118,25 @@ def print_status(msg):
 
 def set_locale_encoding():
     try:
+        # Attempt to set the locale to 'C.UTF-8'
         locale.setlocale(locale.LC_ALL, "C.UTF-8")
-    except locale.Error as error:
-        console_error(
-            "Please ensure that the 'C.UTF-8' locale is available on your system.",
-            exit=False,
-        )
-        console_error(error)
+    except locale.Error:
+        # If 'C.UTF-8' is not available, check if the current locale is UTF-8 based
+        current_locale = locale.getdefaultlocale()
+        if current_locale and "UTF-8" in current_locale[1]:
+            try:
+                locale.setlocale(locale.LC_ALL, current_locale[0])
+            except locale.Error as error:
+                console_error(
+                    "Failed to set locale to the current UTF-8-based locale.",
+                    exit=False,
+                )
+                console_error(error)
+        else:
+            console_error(
+                "Please ensure that a UTF-8-based locale is available on your system.",
+                exit=False,
+            )
 
 
 def reverse_multi_index_df_pmc(final_df):

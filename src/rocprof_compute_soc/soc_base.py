@@ -35,16 +35,18 @@ import pandas as pd
 import yaml
 
 import config
-from utils.mi_gpu_spec import get_gpu_model, get_gpu_series
-from utils.parser import build_in_vars, supported_denom
-from utils.utils import (
-    capture_subprocess_output,
+from utils.logger import (
     console_debug,
     console_error,
     console_log,
     console_warning,
-    convert_metric_id_to_panel_idx,
     demarcate,
+)
+from utils.mi_gpu_spec import get_gpu_model, get_gpu_series
+from utils.parser import build_in_vars, supported_denom
+from utils.utils import (
+    capture_subprocess_output,
+    convert_metric_id_to_panel_idx,
     detect_rocprof,
     get_submodules,
     is_tcc_channel_counter,
@@ -103,7 +105,6 @@ class OmniSoC_Base:
 
     @demarcate
     def populate_mspec(self):
-        console_debug("[populate_mspec]")
         from utils.specs import run, search, total_sqc
 
         if not hasattr(self._mspec, "_rocminfo") or self._mspec._rocminfo is None:

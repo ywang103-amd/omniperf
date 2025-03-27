@@ -753,7 +753,7 @@ def test_block_TCP(binary_handler_profile_rocprof_compute):
         "timestamps.csv",
     ]
 
-    if soc == "MI200":
+    if soc == "MI100" or soc == "MI200":
         expected_csvs = [
             "pmc_perf.csv",
             "pmc_perf_0.csv",
@@ -806,7 +806,7 @@ def test_block_TCC(binary_handler_profile_rocprof_compute):
         "timestamps.csv",
     ]
 
-    if soc == "MI200":
+    if soc == "MI100" or soc == "MI200":
         expected_csvs = [
             "pmc_perf.csv",
             "pmc_perf_0.csv",
@@ -1132,6 +1132,25 @@ def test_block_SQ_SPI_TA_TCC_CPF(binary_handler_profile_rocprof_compute):
         "sysinfo.csv",
         "timestamps.csv",
     ]
+
+    if soc == "MI100":
+        expected_csvs = [
+            "SQ_IFETCH_LEVEL.csv",
+            "SQ_INST_LEVEL_LDS.csv",
+            "SQ_INST_LEVEL_SMEM.csv",
+            "SQ_INST_LEVEL_VMEM.csv",
+            "SQ_LEVEL_WAVES.csv",
+            "pmc_perf.csv",
+            "pmc_perf_0.csv",
+            "pmc_perf_1.csv",
+            "pmc_perf_2.csv",
+            "pmc_perf_3.csv",
+            "pmc_perf_4.csv",
+            "pmc_perf_5.csv",
+            "sysinfo.csv",
+            "timestamps.csv",
+        ]
+
     if soc == "MI200" or "MI300" in soc:
         expected_csvs = [
             "SQ_IFETCH_LEVEL.csv",

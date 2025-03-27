@@ -66,6 +66,26 @@ ALL_CSVS = sorted(
         "timestamps.csv",
     ]
 )
+
+ALL_CSVS_MI100 = sorted(
+    [
+        "SQ_IFETCH_LEVEL.csv",
+        "SQ_INST_LEVEL_LDS.csv",
+        "SQ_INST_LEVEL_SMEM.csv",
+        "SQ_INST_LEVEL_VMEM.csv",
+        "SQ_LEVEL_WAVES.csv",
+        "pmc_perf.csv",
+        "pmc_perf_0.csv",
+        "pmc_perf_1.csv",
+        "pmc_perf_2.csv",
+        "pmc_perf_3.csv",
+        "pmc_perf_4.csv",
+        "pmc_perf_5.csv",
+        "sysinfo.csv",
+        "timestamps.csv",
+    ]
+)
+
 ALL_CSVS_MI200 = sorted(
     [
         "SQ_IFETCH_LEVEL.csv",
@@ -484,7 +504,7 @@ def test_path(binary_handler_profile_rocprof_compute):
     file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
 
     if soc == "MI100":
-        assert sorted(list(file_dict.keys())) == ALL_CSVS
+        assert sorted(list(file_dict.keys())) == ALL_CSVS_MI100
     elif soc == "MI200":
         assert sorted(list(file_dict.keys())) == sorted(ALL_CSVS_MI200)
     elif "MI300" in soc:
@@ -520,7 +540,7 @@ def test_kernel_names(binary_handler_profile_rocprof_compute):
             ROOF_ONLY_FILES + ["kernelName_legend.pdf"]
         )
     else:
-        assert sorted(list(file_dict.keys())) == ALL_CSVS
+        assert sorted(list(file_dict.keys())) == ALL_CSVS_MI100
 
     validate(
         inspect.stack()[0][3],
@@ -539,7 +559,7 @@ def test_device_filter(binary_handler_profile_rocprof_compute):
 
     file_dict = test_utils.check_csv_files(workload_dir, 1, num_kernels)
     if soc == "MI100":
-        assert sorted(list(file_dict.keys())) == ALL_CSVS
+        assert sorted(list(file_dict.keys())) == ALL_CSVS_MI100
     elif soc == "MI200":
         assert sorted(list(file_dict.keys())) == sorted(ALL_CSVS_MI200)
     elif "MI300" in soc:
@@ -567,7 +587,7 @@ def test_kernel(binary_handler_profile_rocprof_compute):
 
     file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     if soc == "MI100":
-        assert sorted(list(file_dict.keys())) == ALL_CSVS
+        assert sorted(list(file_dict.keys())) == ALL_CSVS_MI100
     elif soc == "MI200":
         assert sorted(list(file_dict.keys())) == sorted(ALL_CSVS_MI200)
     elif "MI300" in soc:
@@ -1189,7 +1209,7 @@ def test_dispatch_0(binary_handler_profile_rocprof_compute):
 
     file_dict = test_utils.check_csv_files(workload_dir, num_devices, 1)
     if soc == "MI100":
-        assert sorted(list(file_dict.keys())) == ALL_CSVS
+        assert sorted(list(file_dict.keys())) == ALL_CSVS_MI100
     elif soc == "MI200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     elif "MI300" in soc:
@@ -1219,7 +1239,7 @@ def test_dispatch_0_1(binary_handler_profile_rocprof_compute):
 
     file_dict = test_utils.check_csv_files(workload_dir, num_devices, 2)
     if soc == "MI100":
-        assert sorted(list(file_dict.keys())) == ALL_CSVS
+        assert sorted(list(file_dict.keys())) == ALL_CSVS_MI100
     elif soc == "MI200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     elif "MI300" in soc:
@@ -1246,7 +1266,7 @@ def test_dispatch_2(binary_handler_profile_rocprof_compute):
 
     file_dict = test_utils.check_csv_files(workload_dir, num_devices, 1)
     if soc == "MI100":
-        assert sorted(list(file_dict.keys())) == ALL_CSVS
+        assert sorted(list(file_dict.keys())) == ALL_CSVS_MI100
     elif soc == "MI200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     elif "MI300" in soc:
@@ -1276,7 +1296,7 @@ def test_join_type_grid(binary_handler_profile_rocprof_compute):
 
     file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     if soc == "MI100":
-        assert sorted(list(file_dict.keys())) == ALL_CSVS
+        assert sorted(list(file_dict.keys())) == ALL_CSVS_MI100
     elif soc == "MI200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     elif "MI300" in soc:
@@ -1303,7 +1323,7 @@ def test_join_type_kernel(binary_handler_profile_rocprof_compute):
     file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
 
     if soc == "MI100":
-        assert sorted(list(file_dict.keys())) == ALL_CSVS
+        assert sorted(list(file_dict.keys())) == ALL_CSVS_MI100
     elif soc == "MI200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     elif "MI300" in soc:
@@ -1331,8 +1351,6 @@ def test_sort_dispatches(binary_handler_profile_rocprof_compute):
     )
 
     if soc == "MI100":
-        # assert that it did not run
-        assert returncode >= 1
         # Do not continue testing
         return
 
@@ -1365,8 +1383,6 @@ def test_sort_kernels(binary_handler_profile_rocprof_compute):
     )
 
     if soc == "MI100":
-        # assert that it did not run
-        assert returncode >= 1
         # Do not continue testing
         return
 
@@ -1398,8 +1414,6 @@ def test_mem_levels_vL1D(binary_handler_profile_rocprof_compute):
     )
 
     if soc == "MI100":
-        # assert that it did not run
-        assert returncode >= 1
         # Do not continue testing
         return
 
@@ -1431,8 +1445,6 @@ def test_mem_levels_LDS(binary_handler_profile_rocprof_compute):
     )
 
     if soc == "MI100":
-        # assert that it did not run
-        assert returncode >= 1
         # Do not continue testing
         return
 

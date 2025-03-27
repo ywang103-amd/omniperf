@@ -451,16 +451,18 @@ def v3_counter_csv_to_v2_csv(counter_file, agent_info_filepath, converted_csv_fi
         )
     )
     if result["Agent_Id"].dtype == "object":
-
-        def extract_id(agent_id):
-            """Function to extract the id number using regular expression"""
-            match = re.search(r"Agent (\d+)", agent_id)
-            if match:
-                return int(match.group(1))
-            return None
-
-        # Apply the function to the 'Agent_Id' column and store it as int64
-        result["Agent_Id"] = result["Agent_Id"].apply(extract_id).astype("int64")
+        try:
+            result["Agent_Id"] = (
+                result["Agent_Id"]
+                .apply(lambda x: int(re.search(r"Agent (\d+)", x).group(1)))
+                .astype("int64")
+            )
+        except Exception as e:
+            console_error(
+                'Parsing rocprofv3 csv output: Error of getting "Agent_Id", the error message "{}"'.format(
+                    e
+                )
+            )
 
     # Grab the Wave_Front_Size column from agent info
     result = result.merge(

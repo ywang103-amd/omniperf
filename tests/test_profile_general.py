@@ -49,24 +49,6 @@ DEFAULT_ABS_DIFF = 15
 DEFAULT_REL_DIFF = 50
 MAX_REOCCURING_COUNT = 28
 
-ALL_CSVS = sorted(
-    [
-        "SQ_IFETCH_LEVEL.csv",
-        "SQ_INST_LEVEL_LDS.csv",
-        "SQ_INST_LEVEL_SMEM.csv",
-        "SQ_INST_LEVEL_VMEM.csv",
-        "SQ_LEVEL_WAVES.csv",
-        "pmc_perf.csv",
-        "pmc_perf_0.csv",
-        "pmc_perf_1.csv",
-        "pmc_perf_2.csv",
-        "pmc_perf_3.csv",
-        "pmc_perf_4.csv",
-        "sysinfo.csv",
-        "timestamps.csv",
-    ]
-)
-
 ALL_CSVS_MI100 = sorted(
     [
         "SQ_IFETCH_LEVEL.csv",
@@ -1351,6 +1333,8 @@ def test_sort_dispatches(binary_handler_profile_rocprof_compute):
     )
 
     if soc == "MI100":
+        # assert that it did not run
+        assert returncode >= 1
         # Do not continue testing
         return
 
@@ -1358,11 +1342,7 @@ def test_sort_dispatches(binary_handler_profile_rocprof_compute):
     assert returncode == 0
 
     file_dict = test_utils.check_csv_files(workload_dir, 1, num_kernels)
-
-    if soc == "MI200" or "MI300" in soc:
-        assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
-    else:
-        assert sorted(list(file_dict.keys())) == ALL_CSVS
+    assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
 
     validate(
         inspect.stack()[0][3],
@@ -1383,6 +1363,8 @@ def test_sort_kernels(binary_handler_profile_rocprof_compute):
     )
 
     if soc == "MI100":
+        # assert that it did not run
+        assert returncode >= 1
         # Do not continue testing
         return
 
@@ -1390,10 +1372,7 @@ def test_sort_kernels(binary_handler_profile_rocprof_compute):
     assert returncode == 0
     file_dict = test_utils.check_csv_files(workload_dir, 1, num_kernels)
 
-    if soc == "MI200" or "MI300" in soc:
-        assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
-    else:
-        assert sorted(list(file_dict.keys())) == ALL_CSVS
+    assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
 
     validate(
         inspect.stack()[0][3],
@@ -1414,6 +1393,8 @@ def test_mem_levels_vL1D(binary_handler_profile_rocprof_compute):
     )
 
     if soc == "MI100":
+        # assert that it did not run
+        assert returncode >= 1
         # Do not continue testing
         return
 
@@ -1421,10 +1402,7 @@ def test_mem_levels_vL1D(binary_handler_profile_rocprof_compute):
     assert returncode == 0
     file_dict = test_utils.check_csv_files(workload_dir, 1, num_kernels)
 
-    if soc == "MI200" or "MI300" in soc:
-        assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
-    else:
-        assert sorted(list(file_dict.keys())) == ALL_CSVS
+    assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
 
     validate(
         inspect.stack()[0][3],
@@ -1445,6 +1423,8 @@ def test_mem_levels_LDS(binary_handler_profile_rocprof_compute):
     )
 
     if soc == "MI100":
+        # assert that it did not run
+        assert returncode >= 1
         # Do not continue testing
         return
 
@@ -1452,10 +1432,7 @@ def test_mem_levels_LDS(binary_handler_profile_rocprof_compute):
     assert returncode == 0
     file_dict = test_utils.check_csv_files(workload_dir, 1, num_kernels)
 
-    if soc == "MI200" or "MI300" in soc:
-        assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
-    else:
-        assert sorted(list(file_dict.keys())) == ALL_CSVS
+    assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
 
     validate(
         inspect.stack()[0][3],

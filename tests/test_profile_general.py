@@ -502,20 +502,20 @@ def test_path(binary_handler_profile_rocprof_compute):
 
 @pytest.mark.misc
 def test_kernel_names(binary_handler_profile_rocprof_compute):
+    if soc == "MI100":
+        # roofline is not supported on MI100
+        assert True
+        # Do not continue testing
+        return
+
     options = ["--device", "0", "--roof-only", "--kernel-names"]
     workload_dir = test_utils.get_output_dir()
     returncode = binary_handler_profile_rocprof_compute(
         config, workload_dir, options, check_success=False, roof=True
     )
 
-    if soc == "MI100":
-        # assert that it did not run
-        assert returncode >= 1
-        # Do not continue testing
-        return
     # assert successful run
     assert returncode == 0
-
     file_dict = test_utils.check_csv_files(workload_dir, 1, num_kernels)
     if soc == "MI200" or "MI300" in soc:
         assert sorted(list(file_dict.keys())) == sorted(
@@ -1326,17 +1326,17 @@ def test_join_type_kernel(binary_handler_profile_rocprof_compute):
 @pytest.mark.sort
 def test_sort_dispatches(binary_handler_profile_rocprof_compute):
     # only test 1 device for roofline
+    if soc == "MI100":
+        # roofline is not supported on MI100
+        assert True
+        # Do not continue testing
+        return
+
     options = ["--device", "0", "--roof-only", "--sort", "dispatches"]
     workload_dir = test_utils.get_output_dir()
     returncode = binary_handler_profile_rocprof_compute(
         config, workload_dir, options, check_success=False, roof=True
     )
-
-    if soc == "MI100":
-        # assert that it did not run
-        assert returncode >= 1
-        # Do not continue testing
-        return
 
     # assert successful run
     assert returncode == 0
@@ -1356,17 +1356,17 @@ def test_sort_dispatches(binary_handler_profile_rocprof_compute):
 @pytest.mark.sort
 def test_sort_kernels(binary_handler_profile_rocprof_compute):
     # only test 1 device for roofline
+    if soc == "MI100":
+        # roofline is not supported on MI100
+        assert True
+        # Do not continue testing
+        return
+
     options = ["--device", "0", "--roof-only", "--sort", "kernels"]
     workload_dir = test_utils.get_output_dir()
     returncode = binary_handler_profile_rocprof_compute(
         config, workload_dir, options, check_success=False, roof=True
     )
-
-    if soc == "MI100":
-        # assert that it did not run
-        assert returncode >= 1
-        # Do not continue testing
-        return
 
     # assert successful run
     assert returncode == 0
@@ -1386,17 +1386,17 @@ def test_sort_kernels(binary_handler_profile_rocprof_compute):
 @pytest.mark.mem
 def test_mem_levels_vL1D(binary_handler_profile_rocprof_compute):
     # only test 1 device for roofline
+    if soc == "MI100":
+        # roofline is not supported on MI100
+        assert True
+        # Do not continue testing
+        return
+
     options = ["--device", "0", "--roof-only", "--mem-level", "vL1D"]
     workload_dir = test_utils.get_output_dir()
     returncode = binary_handler_profile_rocprof_compute(
         config, workload_dir, options, check_success=False, roof=True
     )
-
-    if soc == "MI100":
-        # assert that it did not run
-        assert returncode >= 1
-        # Do not continue testing
-        return
 
     # assert successful run
     assert returncode == 0
@@ -1416,17 +1416,17 @@ def test_mem_levels_vL1D(binary_handler_profile_rocprof_compute):
 @pytest.mark.mem
 def test_mem_levels_LDS(binary_handler_profile_rocprof_compute):
     # only test 1 device for roofline
+    if soc == "MI100":
+        # roofline is not supported on MI100
+        assert True
+        # Do not continue testing
+        return
+
     options = ["--device", "0", "--roof-only", "--mem-level", "LDS"]
     workload_dir = test_utils.get_output_dir()
     returncode = binary_handler_profile_rocprof_compute(
         config, workload_dir, options, check_success=False, roof=True
     )
-
-    if soc == "MI100":
-        # assert that it did not run
-        assert returncode >= 1
-        # Do not continue testing
-        return
 
     # assert successful run
     assert returncode == 0

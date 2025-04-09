@@ -439,7 +439,7 @@ class OmniSoC_Base:
         return rorcprof_counters
 
     @demarcate
-    def perfmon_coalesce(self, counters):
+    def perfmon_coalesce(self, raw_counters):
         """Sort and bucket all related performance counters to minimize required application passes"""
 
         # Create workload directory
@@ -470,12 +470,17 @@ class OmniSoC_Base:
         # rocprof does not support TCC channel counters, so remove channel suffix for comparison
         not_supported_counters = {
             counter.split("[")[0] if is_tcc_channel_counter(counter) else counter
-            for counter in counters
+            for counter in raw_counters
         } - rocprof_counters
         if not_supported_counters:
             console_warning(
                 f"Following counters might not be supported by rocprof: {', '.join(not_supported_counters)} "
             )
+
+        counters = {
+            counter.split("[")[0] if is_tcc_channel_counter(counter) else counter
+            for counter in counters
+        } - not_supported_counters
         # We might be providing definitions of unsupported counters, so still try to collect them
         if not counters:
             console_error(

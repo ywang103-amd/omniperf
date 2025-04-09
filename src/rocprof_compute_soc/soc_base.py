@@ -479,7 +479,7 @@ class OmniSoC_Base:
 
         counters = {
             counter.split("[")[0] if is_tcc_channel_counter(counter) else counter
-            for counter in counters
+            for counter in raw_counters
         } - not_supported_counters
         # We might be providing definitions of unsupported counters, so still try to collect them
         if not counters:

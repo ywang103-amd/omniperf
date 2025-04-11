@@ -328,9 +328,6 @@ if soc == "MI100":
 else:
     os.environ["ROCPROF"] = "rocprofv3"
 
-if "MI350" in soc:
-    os.environ["ROCPROF"] = "rocprofv3"
-
 
 def using_v3():
     return "ROCPROF" in os.environ.keys() and os.environ["ROCPROF"].endswith("rocprofv3")

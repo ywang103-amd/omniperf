@@ -43,6 +43,8 @@ Full documentation for ROCm Compute Profiler is available at [https://rocm.docs.
   * L2 to EA stalls
   * L2 to EA stalls per channel
 
+* Roofline support for RHEL 10
+
 ### Changed
 
 * Change the rocprof version for unit tests to rocprofv3 on all SoCs except MI100

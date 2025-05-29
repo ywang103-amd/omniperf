@@ -60,6 +60,79 @@ def is_tcc_channel_counter(counter):
     return counter.startswith("TCC") and counter.endswith("]")
 
 
+def is_counter_existed_in_extra_input_yaml(data, counter_name):
+    counters = data.get("rocprofiler-sdk", {}).get("counters", [])
+    return any(counter.get("name") == counter_name for counter in counters)
+
+
+def add_counter_extra_config_input_yaml(
+    data,
+    counter_name,
+    description,
+    expression,
+    architectures: list,
+    properties: list = [],
+):
+    """
+    Add a new counter to the rocprofiler-sdk dictionary.
+    Initialize missing parts if data is empty or incomplete.
+    Enforces that 'architectures' and 'properties' are lists for correct YAML list serialization.
+
+    Args:
+      data (dict): The loaded YAML dictionary (can be empty).
+      counter_name (str): The name of the new counter.
+      description (str): Description of the new counter.
+      architectures (list): List of architectures for the definitions.
+      expression (str): Expression string for the counter.
+      properties (list): Optional list of properties, default to empty list.
+    """
+    if properties is None:
+        properties = []
+
+    # Enforce type checks for YAML list serialization
+    if not isinstance(architectures, list):
+        raise TypeError(
+            f"'architectures' must be a list, got {type(architectures).__name__}"
+        )
+    if not isinstance(properties, list):
+        raise TypeError(f"'properties' must be a list, got {type(properties).__name__}")
+
+    # Initialize the top-level 'rocprofiler-sdk' dict if missing
+    if "rocprofiler-sdk" not in data or not isinstance(data["rocprofiler-sdk"], dict):
+        data["rocprofiler-sdk"] = {}
+
+    sdk = data["rocprofiler-sdk"]
+
+    # Initialize schema version if missing
+    if "counters-schema-version" not in sdk:
+        sdk["counters-schema-version"] = 1
+
+    # Initialize counters list if missing or not a list
+    if "counters" not in sdk or not isinstance(sdk["counters"], list):
+        sdk["counters"] = []
+
+    # Check if the counter already exists (optional: skip or replace)
+    for counter in sdk["counters"]:
+        if counter.get("name") == counter_name:
+            raise ValueError(f"Counter with name '{counter_name}' already exists")
+
+    # Build the new counter dictionary
+    new_counter = {
+        "name": counter_name,
+        "description": description,
+        "properties": properties,
+        "definitions": [
+            {
+                "architectures": architectures,
+                "expression": expression,
+            }
+        ],
+    }
+
+    # Append the new counter
+    sdk["counters"].append(new_counter)
+
+
 def is_spi_pipe_counter(counter):
     for pattern in spi_pipe_counter_regexs:
         if re.match(pattern, counter):

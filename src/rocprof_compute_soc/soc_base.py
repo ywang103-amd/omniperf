@@ -46,11 +46,13 @@ from utils.logger import (
 from utils.mi_gpu_spec import mi_gpu_specs
 from utils.parser import build_in_vars, supported_denom
 from utils.utils import (
+    add_counter_extra_config_input_yaml,
     capture_subprocess_output,
     convert_metric_id_to_panel_idx,
     detect_rocprof,
     get_base_spi_pipe_counter,
     get_submodules,
+    is_counter_existed_in_extra_input_yaml,
     is_spi_pipe_counter,
     is_tcc_channel_counter,
     using_v3,
@@ -713,7 +715,9 @@ class OmniSoC_Base:
                 ]:
                     pmc.append(ctr)
                     if using_v3():
-                        if ctr in accum_counters_def:
+                        if is_counter_existed_in_extra_input_yaml(
+                            accum_counters_def, ctr
+                        ):
                             counter_def[ctr] = accum_counters_def[ctr]
                         # Add TCC channel counters definitions
                         if is_tcc_channel_counter(ctr):
@@ -721,6 +725,16 @@ class OmniSoC_Base:
                             idx = int(ctr.split("[")[1].split("]")[0])
                             xcd_idx = idx // int(self._mspec._l2_banks)
                             channel_idx = idx % int(self._mspec._l2_banks)
+                            expression = f"select({counter_name},[DIMENSION_XCC=[{xcd_idx}], DIMENSION_INSTANCE=[{channel_idx}]])"
+                            discription = f"{counter_name} on {xcd_idx}th XCC and {channel_idx}th channel"
+                            add_counter_extra_config_input_yaml(
+                                counter_def,
+                                counter_name,
+                                discription,
+                                expression,
+                                [self.__arch],
+                            )
+
                             counter_def.update(
                                 {
                                     ctr: {

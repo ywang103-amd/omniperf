@@ -732,7 +732,7 @@ class OmniSoC_Base:
                             discription = f"{counter_name} on {xcd_idx}th XCC and {channel_idx}th channel"
                             add_counter_extra_config_input_yaml(
                                 counter_def,
-                                counter_name,
+                                ctr,
                                 discription,
                                 expression,
                                 [self.__arch],

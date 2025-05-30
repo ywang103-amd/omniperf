@@ -194,15 +194,12 @@ def add_counter_from_source_to_target_extra_config_input_yaml(
     properties = counter.get("properties", [])
     definitions = counter.get("definitions", [])
 
-    # For simplicity, assume there is exactly one definitions entry (as in your example)
-    # If multiple definitions, you could loop or adapt accordingly
     if not definitions:
         raise ValueError(f"Counter '{counter_name}' has no definitions")
 
     architectures = definitions[0].get("architectures", [])
     expression = definitions[0].get("expression", "")
 
-    # Use your existing function to add to target_data
     return add_counter_extra_config_input_yaml(
         target_data,
         counter_name=name,

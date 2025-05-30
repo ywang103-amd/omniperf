@@ -47,6 +47,7 @@ from utils.mi_gpu_spec import mi_gpu_specs
 from utils.parser import build_in_vars, supported_denom
 from utils.utils import (
     add_counter_extra_config_input_yaml,
+    add_counter_from_source_to_target_extra_config_input_yaml,
     capture_subprocess_output,
     convert_metric_id_to_panel_idx,
     detect_rocprof,
@@ -717,8 +718,10 @@ class OmniSoC_Base:
                     if using_v3():
                         if is_counter_existed_in_extra_input_yaml(
                             accum_counters_def, ctr
-                        ):
-                            counter_def[ctr] = accum_counters_def[ctr]
+                        ) and is_counter_existed_in_extra_input_yaml(counter_def, ctr):
+                            add_counter_from_source_to_target_extra_config_input_yaml(
+                                accum_counters_def, counter_def, ctr
+                            )
                         # Add TCC channel counters definitions
                         if is_tcc_channel_counter(ctr):
                             counter_name = ctr.split("[")[0]
@@ -733,19 +736,6 @@ class OmniSoC_Base:
                                 discription,
                                 expression,
                                 [self.__arch],
-                            )
-
-                            counter_def.update(
-                                {
-                                    ctr: {
-                                        "architectures": {
-                                            self.__arch: {
-                                                "expression": f"select({counter_name},[DIMENSION_XCC=[{xcd_idx}], DIMENSION_INSTANCE=[{channel_idx}]])",
-                                            }
-                                        },
-                                        "description": f"{counter_name} on {xcd_idx}th XCC and {channel_idx}th channel",
-                                    }
-                                }
                             )
 
                 stext = "pmc: " + " ".join(pmc)

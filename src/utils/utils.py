@@ -60,31 +60,45 @@ def is_tcc_channel_counter(counter):
     return counter.startswith("TCC") and counter.endswith("]")
 
 
-def is_counter_existed_in_extra_input_yaml(data, counter_name):
+def is_counter_existed_in_extra_input_yaml(data: dict, counter_name: str) -> bool:
+    """
+    Check if a counter with the given name exists in the rocprofiler-sdk counters.
+
+    Args:
+        data (dict): The loaded YAML dictionary.
+        counter_name (str): The name of the counter to check.
+
+    Returns:
+        bool: True if the counter exists, False otherwise.
+    """
     counters = data.get("rocprofiler-sdk", {}).get("counters", [])
     return any(counter.get("name") == counter_name for counter in counters)
 
 
 def add_counter_extra_config_input_yaml(
-    data,
-    counter_name,
-    description,
-    expression,
+    data: dict,
+    counter_name: str,
+    description: str,
+    expression: str,
     architectures: list,
-    properties: list = [],
-):
+    properties: list = None,
+) -> dict:
     """
     Add a new counter to the rocprofiler-sdk dictionary.
     Initialize missing parts if data is empty or incomplete.
     Enforces that 'architectures' and 'properties' are lists for correct YAML list serialization.
+    Overwrites the counter if it already exists.
 
     Args:
-      data (dict): The loaded YAML dictionary (can be empty).
-      counter_name (str): The name of the new counter.
-      description (str): Description of the new counter.
-      architectures (list): List of architectures for the definitions.
-      expression (str): Expression string for the counter.
-      properties (list): Optional list of properties, default to empty list.
+        data (dict): The loaded YAML dictionary (can be empty).
+        counter_name (str): The name of the new counter.
+        description (str): Description of the new counter.
+        architectures (list): List of architectures for the definitions.
+        expression (str): Expression string for the counter.
+        properties (list, optional): Optional list of properties, default to empty list.
+
+    Returns:
+        dict: Updated YAML dictionary.
     """
     if properties is None:
         properties = []
@@ -111,11 +125,6 @@ def add_counter_extra_config_input_yaml(
     if "counters" not in sdk or not isinstance(sdk["counters"], list):
         sdk["counters"] = []
 
-    # Check if the counter already exists (optional: skip or replace)
-    for counter in sdk["counters"]:
-        if counter.get("name") == counter_name:
-            raise ValueError(f"Counter with name '{counter_name}' already exists")
-
     # Build the new counter dictionary
     new_counter = {
         "name": counter_name,
@@ -129,8 +138,79 @@ def add_counter_extra_config_input_yaml(
         ],
     }
 
-    # Append the new counter
-    sdk["counters"].append(new_counter)
+    # Check if the counter already exists and overwrite if found
+    for idx, counter in enumerate(sdk["counters"]):
+        if counter.get("name") == counter_name:
+            sdk["counters"][idx] = new_counter
+            break
+    else:
+        # Not found, append new counter
+        sdk["counters"].append(new_counter)
+
+    return data
+
+
+def extract_counter_info_extra_config_input_yaml(
+    data: dict, counter_name: str
+) -> dict | None:
+    """
+    Extract the full counter dictionary from 'data' for the given counter_name.
+
+    Args:
+        data (dict): The source YAML dict.
+        counter_name (str): The counter to find.
+
+    Returns:
+        dict | None: The full counter dict if found, else None.
+    """
+    counters = data.get("rocprofiler-sdk", {}).get("counters", [])
+    for counter in counters:
+        if counter.get("name") == counter_name:
+            return counter
+    return None
+
+
+def add_counter_from_source_to_target_extra_config_input_yaml(
+    source_data: dict, target_data: dict, counter_name: str
+) -> dict:
+    """
+    Check if counter_name exists in source_data, and if yes, add it to target_data.
+
+    Args:
+        source_data (dict): Source YAML dictionary to extract from.
+        target_data (dict): Target YAML dictionary to add to.
+        counter_name (str): Name of the counter to copy.
+
+    Returns:
+        dict: Updated target_data dictionary.
+    """
+    counter = extract_counter_info_extra_config_input_yaml(source_data, counter_name)
+    if not counter:
+        raise ValueError(f"Counter '{counter_name}' not found in source data")
+
+    # Extract required info
+    name = counter.get("name")
+    description = counter.get("description", "")
+    properties = counter.get("properties", [])
+    definitions = counter.get("definitions", [])
+
+    # For simplicity, assume there is exactly one definitions entry (as in your example)
+    # If multiple definitions, you could loop or adapt accordingly
+    if not definitions:
+        raise ValueError(f"Counter '{counter_name}' has no definitions")
+
+    architectures = definitions[0].get("architectures", [])
+    expression = definitions[0].get("expression", "")
+
+    # Use your existing function to add to target_data
+    return add_counter_extra_config_input_yaml(
+        target_data,
+        counter_name=name,
+        description=description,
+        expression=expression,
+        architectures=architectures,
+        properties=properties,
+    )
 
 
 def is_spi_pipe_counter(counter):

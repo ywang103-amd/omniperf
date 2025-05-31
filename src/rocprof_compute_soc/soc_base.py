@@ -309,14 +309,14 @@ class OmniSoC_Base:
                 section_config_text = "\n".join(
                     [
                         # Convert yaml to string
-                        yaml.dump(subsection)
+                        yaml.dump(subsection, sort_keys=False)
                         for subsection in section_config["Panel Config"]["data source"]
                         if subsection["metric_table"]["id"] in subsections
                     ]
                 )
             else:
                 # Convert yaml to string
-                section_config_text = yaml.dump(section_config)
+                section_config_text = yaml.dump(section_config, sort_keys=False)
             counters = counters.union(self.parse_counters(section_config_text))
 
         # Handle TCC channel counters: if hw_counter_matches has elements ending with '['
@@ -779,9 +779,13 @@ class OmniSoC_Base:
                     if using_v3():
                         if is_counter_existed_in_extra_input_yaml(
                             accum_counters_def, ctr
-                        ) and is_counter_existed_in_extra_input_yaml(counter_def, ctr):
-                            add_counter_from_source_to_target_extra_config_input_yaml(
-                                accum_counters_def, counter_def, ctr
+                        ) and not is_counter_existed_in_extra_input_yaml(
+                            counter_def, ctr
+                        ):
+                            counter_def = (
+                                add_counter_from_source_to_target_extra_config_input_yaml(
+                                    accum_counters_def, counter_def, ctr
+                                )
                             )
                         # Add TCC channel counters definitions
                         if is_tcc_channel_counter(ctr):
@@ -791,7 +795,7 @@ class OmniSoC_Base:
                             channel_idx = idx % int(self._mspec._l2_banks)
                             expression = f"select({counter_name},[DIMENSION_XCC=[{xcd_idx}], DIMENSION_INSTANCE=[{channel_idx}]])"
                             discription = f"{counter_name} on {xcd_idx}th XCC and {channel_idx}th channel"
-                            add_counter_extra_config_input_yaml(
+                            counter_def = add_counter_extra_config_input_yaml(
                                 counter_def,
                                 ctr,
                                 discription,
@@ -812,7 +816,7 @@ class OmniSoC_Base:
                 if using_v3():
                     with open(file_name_yaml, "w") as fp:
                         if counter_def:
-                            fp.write(yaml.dump(counter_def))
+                            fp.write(yaml.dump(counter_def, sort_keys=False))
 
         # Add a timestamp file
         # TODO: Does v3 need this?

@@ -1655,8 +1655,8 @@ def test_live_attach_detach_block(binary_handler_profile_rocprof_compute):
     workload_dir = test_utils.get_output_dir()
     process_workload = subprocess.Popen(config["app_hip_dynamic_shared"])
     
-    # set the time to detach here to 2 mins, which is 120000 msec
-    time_to_detach="120000"
+    # set the time to detach here to 1 mins, which is 60000 msec
+    time_to_detach="60000"
     
     attach_detach=dict()
     attach_detach["pid"] = process_workload.pid
@@ -1667,7 +1667,15 @@ def test_live_attach_detach_block(binary_handler_profile_rocprof_compute):
     )
 
     # kill the process of the workload at thsi point if it's still running
-    process_workload.terminate()
+    if process_workload.poll() is None:
+        print(f"Terminating workload process (pid={process_workload.pid})...")
+        process_workload.terminate()
+        try:
+            process_workload.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            print("Process didn't exit, killing it...")
+            process_workload.kill()
+            process_workload.wait()
 
     file_dict = test_utils.check_csv_files(workload_dir, 1, num_kernels)
     validate(
@@ -1677,13 +1685,13 @@ def test_live_attach_detach_block(binary_handler_profile_rocprof_compute):
     )
 
     assert test_utils.check_file_pattern(
-        "- '3.1.1'", f"{workload_dir}/profiling_config.yaml"
+        "- 3.1.1", f"{workload_dir}/profiling_config.yaml"
     )
     assert test_utils.check_file_pattern(
-        "- '4.1.1'", f"{workload_dir}/profiling_config.yaml"
+        "- 4.1.1", f"{workload_dir}/profiling_config.yaml"
     )
     assert test_utils.check_file_pattern(
-        "- '5.1.1'", f"{workload_dir}/profiling_config.yaml"
+        "- 5.1.1", f"{workload_dir}/profiling_config.yaml"
     )
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 

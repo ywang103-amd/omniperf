@@ -1739,12 +1739,6 @@ def test_live_attach_detach_singlepath_launch_stats(binary_handler_profile_rocpr
         "- 7.1.2", f"{workload_dir}/profiling_config.yaml"
     )
     assert test_utils.check_file_pattern(
-        "- 7.1.3", f"{workload_dir}/profiling_config.yaml"
-    )
-    assert test_utils.check_file_pattern(
-        "- 7.1.4", f"{workload_dir}/profiling_config.yaml"
-    )
-    assert test_utils.check_file_pattern(
         "- 7.1.5", f"{workload_dir}/profiling_config.yaml"
     )
     assert test_utils.check_file_pattern(

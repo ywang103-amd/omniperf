@@ -1667,14 +1667,9 @@ def test_live_attach_detach_block(binary_handler_profile_rocprof_compute):
 
     # kill the process of the workload at thsi point if it's still running
     if process_workload.poll() is None:
-        print(f"Terminating workload process (pid={process_workload.pid})...")
-        process_workload.terminate()
-        try:
-            process_workload.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            print("Process didn't exit, killing it...")
-            process_workload.kill()
-            process_workload.wait()
+        print(f"rocprof-compute has detached and finished, killing workload process (pid={process_workload.pid})...")
+        process_workload.kill()
+        process_workload.wait()
 
     file_dict = test_utils.check_csv_files(workload_dir, 1, num_kernels)
     validate(
@@ -1713,14 +1708,9 @@ def test_live_attach_detach_singlepath_launch_stats(binary_handler_profile_rocpr
 
     # kill the process of the workload at thsi point if it's still running
     if process_workload.poll() is None:
-        print(f"Terminating workload process (pid={process_workload.pid})...")
-        process_workload.terminate()
-        try:
-            process_workload.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            print("Process didn't exit, killing it...")
-            process_workload.kill()
-            process_workload.wait()
+        print(f"rocprof-compute has detached and finished, killing workload process (pid={process_workload.pid})...")
+        process_workload.kill()
+        process_workload.wait()
 
     file_dict = test_utils.check_csv_files(workload_dir, 1, num_kernels)
     validate(
